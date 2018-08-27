@@ -1,0 +1,4 @@
+pysoundfile
+pandas
+numpy
+sklearn
