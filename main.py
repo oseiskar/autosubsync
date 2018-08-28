@@ -8,7 +8,7 @@ import model
 import predict
 import preprocessing
 
-def main(model_file, video_file, subtitle_file, output_file):
+def main(model_file, video_file, subtitle_file, output_file, max_shift_secs):
     
     with open(model_file, 'rb') as f:
         trained_model = model.deserialize(f.read())
@@ -30,7 +30,7 @@ def main(model_file, video_file, subtitle_file, output_file):
         preprocessing.convert_subs_to_csv(subtitle_file, subs_tmp)
         print('------------ sound and subtitles extracted, performing sync')
         
-        best_shift = predict.main(trained_model, sound_file, subs_tmp)
+        best_shift, scores = predict.main(trained_model, sound_file, subs_tmp, max_shift_secs)
         print('optimal shift: %g' % best_shift)
         clear()
     
@@ -42,13 +42,22 @@ def main(model_file, video_file, subtitle_file, output_file):
         
     finally:
         clear()
+        
+    return scores
 
 if __name__ == '__main__':
     p = argparse.ArgumentParser()
-    p.add_argument('--model_file', default='trained-model.bin')
     p.add_argument('video_file')
     p.add_argument('subtitle_file')
     p.add_argument('output_file')
+    p.add_argument('--model_file', default='trained-model.bin')
+    p.add_argument('--max_shift_secs', default=2.0, type=float)
+    p.add_argument('--plot_scores', action='store_true')
     args = p.parse_args()
     
-    main(args.model_file, args.video_file, args.subtitle_file, args.output_file)
+    scores = main(args.model_file, args.video_file, args.subtitle_file, args.output_file, args.max_shift_secs)
+    
+    if args.plot_scores:
+        import matplotlib.pyplot as plt
+        plt.plot(scores)
+        plt.show()

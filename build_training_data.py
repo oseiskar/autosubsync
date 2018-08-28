@@ -12,7 +12,7 @@ indexfile = os.path.join(TRAINING_FOLDER, 'index.csv')
 sound_id = 1
 with open('training-sources.csv') as f, open(indexfile, 'wt') as index:
     indexwriter = csv.writer(index)
-    indexwriter.writerow(['sound', 'subtitles'])
+    indexwriter.writerow(['sound', 'subtitles', 'language'])
     for line in csv.DictReader(f):
         sound_file = 'sound_%03d.flac' % sound_id
         sub_file = 'subs_%03d.csv' % sound_id
@@ -20,4 +20,4 @@ with open('training-sources.csv') as f, open(indexfile, 'wt') as index:
 
         extract_sound(line['video'], os.path.join(TRAINING_FOLDER, sound_file))
         convert_subs_to_csv(line['subtitles'], os.path.join(TRAINING_FOLDER, sub_file))
-        indexwriter.writerow((sound_file, sub_file))
+        indexwriter.writerow((sound_file, sub_file, line['language']))

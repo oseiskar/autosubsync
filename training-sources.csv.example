@@ -1,2 +1,3 @@
-"video","subtitles"
-"/path/to/video1.mkv","/path/to/subtitles.srt"
+"video","subtitles","language"
+"/path/to/video1.mkv","/path/to/subtitles1.srt","en"
+"/path/to/video2.mkv","/path/to/subtitles2.srt","fi"

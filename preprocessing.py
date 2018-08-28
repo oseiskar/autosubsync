@@ -99,6 +99,9 @@ def extract_sound(input_video_file, output_sound_file):
 def read_training_data(index_file):
     base_path = os.path.dirname(index_file)
     locate = lambda f: os.path.join(base_path, f)
+    file_number = 0
     with open(index_file) as index:
         for item in csv.DictReader(index):
-            yield(import_item(locate(item['sound']), locate(item['subtitles'])))
+            file_number += 1
+            sound_data, sub_vec, sample_rate = import_item(locate(item['sound']), locate(item['subtitles']))
+            yield(sound_data, sub_vec, sample_rate, item['language'], file_number)
