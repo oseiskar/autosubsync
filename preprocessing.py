@@ -105,3 +105,27 @@ def read_training_data(index_file):
             file_number += 1
             sound_data, sub_vec, sample_rate = import_item(locate(item['sound']), locate(item['subtitles']))
             yield(sound_data, sub_vec, sample_rate, item['language'], file_number)
+
+def import_target_files(video_file, subtitle_file):
+    "Import prediction target files using a temporary directory"
+    import tempfile
+    tmp_dir = tempfile.mkdtemp()
+    sound_file = os.path.join(tmp_dir, 'sound.flac')
+    subs_tmp = os.path.join(tmp_dir, 'subs.csv')
+    
+    def clear():
+        print('--- clearing temporary data')
+        for to_delete in [sound_file, subs_tmp]:
+            #print('deleting', to_delete)
+            try: os.unlink(to_delete)
+            except: pass
+        try: os.rmdir(tmp_dir)
+        except: pass
+    
+    try:
+        extract_sound(video_file, sound_file)
+        convert_subs_to_csv(subtitle_file, subs_tmp)
+        return import_item(sound_file, subs_tmp)
+        
+    finally:
+        clear()

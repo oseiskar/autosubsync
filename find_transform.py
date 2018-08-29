@@ -17,4 +17,10 @@ def best_shift(y_subs, y_probs, max_shift_secs=2.0):
     max_shift = int(max_shift_secs/frame_secs)+1
     shifts = range(-max_shift, max_shift)
     scores = [sub_score(y_subs, y_probs, shift) for shift in shifts]
-    return shifts[np.argmax(scores)]*frame_secs, scores
+    return shifts[np.argmax(scores)]*frame_secs
+
+def find_transform(y_subs, y_probs, max_shift_secs=2.0, verbose=False):
+    shift = best_shift(y_subs, y_probs, max_shift_secs)
+    if verbose:
+        print('optimal shift: %g seconds' % shift)
+    return lambda x: x + shift

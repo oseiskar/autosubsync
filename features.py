@@ -62,7 +62,7 @@ def compute_table(index_file):
     all_numbers = []
     all_languages = []
     for sound_data, subvec, sample_rate, language, file_number in preprocessing.read_training_data(index_file):
-        print('--- file number %d' % file_number)
+        print('computing features for file %d' % file_number)
         training_x, training_y = compute(sound_data, subvec, sample_rate)
         all_x.append(training_x)
         all_y.extend(training_y)
