@@ -13,5 +13,4 @@ if __name__ == '__main__':
     target_file = 'trained-model.bin'
     print('serializing model to ' + target_file)
 
-    with open(target_file, 'wb') as f:
-        f.write(model.serialize(trained))
+    model.save(trained, target_file)

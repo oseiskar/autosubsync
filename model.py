@@ -15,3 +15,12 @@ def serialize(model):
 def deserialize(data):
     import pickle
     return pickle.loads(data)
+
+def load(model_file):
+    with open(model_file, 'rb') as f:
+        return deserialize(f.read())
+
+def save(trained_model, target_file):
+    with open(target_file, 'wb') as f:
+        f.write(serialize(trained_model))
+    

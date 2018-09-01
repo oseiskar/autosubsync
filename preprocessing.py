@@ -66,23 +66,24 @@ def import_sound(sound_path):
     sound_data, sample_rate = soundfile.read(sound_path)
     return sound_data, sample_rate
 
-def build_sub_vec(subs, sample_rate, n):
+def build_sub_vec(subs, sample_rate, n, sub_filter=None):
     subvec = np.zeros(n)
     to_index = lambda x: int(sample_rate*x)
     for _, line in subs.iterrows():
+        if sub_filter is not None and not sub_filter(line['text']): continue
         begin = line['begin']
         end = line['end']
         subvec[to_index(begin):to_index(end)] = 1
     return subvec
 
-def import_sub_csv(subs_csv_path, sample_rate, n):
+def import_sub_csv(subs_csv_path, sample_rate, n, **kwargs):
     import pandas as pd
-    return build_sub_vec(pd.read_csv(subs_csv_path), sample_rate, n)
+    return build_sub_vec(pd.read_csv(subs_csv_path), sample_rate, n, **kwargs)
 
-def import_item(sound_file, subtitle_file):
+def import_item(sound_file, subtitle_file, **kwargs):
     sound_data, sample_rate = import_sound(sound_file)
     n = len(sound_data)
-    sub_vec = import_sub_csv(subtitle_file, sample_rate, n)
+    sub_vec = import_sub_csv(subtitle_file, sample_rate, n, **kwargs)
     return sound_data, sub_vec, sample_rate
 
 def extract_sound(input_video_file, output_sound_file):
@@ -106,7 +107,7 @@ def read_training_data(index_file):
             sound_data, sub_vec, sample_rate = import_item(locate(item['sound']), locate(item['subtitles']))
             yield(sound_data, sub_vec, sample_rate, item['language'], file_number)
 
-def import_target_files(video_file, subtitle_file):
+def import_target_files(video_file, subtitle_file, **kwargs):
     "Import prediction target files using a temporary directory"
     import tempfile
     tmp_dir = tempfile.mkdtemp()
@@ -125,7 +126,13 @@ def import_target_files(video_file, subtitle_file):
     try:
         extract_sound(video_file, sound_file)
         convert_subs_to_csv(subtitle_file, subs_tmp)
-        return import_item(sound_file, subs_tmp)
+        return import_item(sound_file, subs_tmp, **kwargs)
         
     finally:
         clear()
+
+def transform_srt(in_srt, out_srt, transform_func):
+    with open(out_srt, 'w') as out_file:
+        out_srt = srt_writer(out_file)
+        for _, begin, end, text in read_srt(in_srt):
+            out_srt.write(transform_func(begin), transform_func(end), text)
