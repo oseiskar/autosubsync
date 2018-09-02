@@ -39,8 +39,7 @@ def find_transform(y_subs, y_probs, max_shift_secs=10.0, frame_rates=[23.976, 24
         print('testing with skews: ' + ', '.join(skew_labels))
 
     shift_score_quality = np.array([list(best_shift(y_subs, y_probs, max_shift_secs, skew)) for skew in skews])
-    if verbose:
-        print(shift_score_quality)
+    #if verbose: print(shift_score_quality)
         
     best_idx = np.argmax(shift_score_quality[:,1])
     

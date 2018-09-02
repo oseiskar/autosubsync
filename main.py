@@ -12,18 +12,18 @@ from quality_of_fit import threshold
 
 def main(model_file, video_file, subtitle_file, output_file, **kwargs):
     trained_model = model.load(model_file)
-        
+    
     target_data = preprocessing.import_target_files(video_file, subtitle_file)
-    print('------------ sound and subtitles extracted, fitting...')
+    print('audio and subtitles extracted, fitting...')
     transform_func, quality = predict.main(trained_model, *target_data, verbose=True, **kwargs)
     
     print('quality of fit: %g, threshold %g' % (quality, threshold))
     if quality > threshold:
-        print('-> SUCCESS!')
+        print('---> SUCCESS!')
     else:
-        sys.stderr.write("WARNING: low quality of fit. Wrong subtitle file?\n")
+        sys.stderr.write(" *** WARNING: low quality of fit. Wrong subtitle file?\n")
     
-    print('------------ fit complete, performing resync')
+    print('Fit complete. Performing resync, writing to ' + output_file)
     preprocessing.transform_srt(subtitle_file, output_file, transform_func)
 
 if __name__ == '__main__':
