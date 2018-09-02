@@ -2,17 +2,26 @@
 import argparse
 import numpy as np
 import os
+import sys
 
 import model
 import predict
 import preprocessing
+
+from quality_of_fit import threshold
 
 def main(model_file, video_file, subtitle_file, output_file, **kwargs):
     trained_model = model.load(model_file)
         
     target_data = preprocessing.import_target_files(video_file, subtitle_file)
     print('------------ sound and subtitles extracted, fitting...')
-    transform_func = predict.main(trained_model, *target_data, verbose=True, **kwargs)
+    transform_func, quality = predict.main(trained_model, *target_data, verbose=True, **kwargs)
+    
+    print('quality of fit: %g, threshold %g' % (quality, threshold))
+    if quality > threshold:
+        print('-> SUCCESS!')
+    else:
+        sys.stderr.write("WARNING: low quality of fit. Wrong subtitle file?\n")
     
     print('------------ fit complete, performing resync')
     preprocessing.transform_srt(subtitle_file, output_file, transform_func)

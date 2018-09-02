@@ -1,6 +1,7 @@
 import numpy as np
 
 from features import frame_secs
+import quality_of_fit
 
 def sub_score_transform(y_true, y_probs, func):
     y_true = np.array(list(y_true))
@@ -19,8 +20,9 @@ def best_shift(y_subs, y_probs, max_shift_secs=2.0, skew=1.0):
     max_shift = int(max_shift_secs/frame_secs)+1
     shifts = range(-max_shift, max_shift)
     scores = [sub_score(y_subs, y_probs, shift, skew) for shift in shifts]
+    quality = quality_of_fit.compute_quality(scores)
     best_idx = np.argmax(scores)
-    return shifts[best_idx]*frame_secs, scores[best_idx]
+    return shifts[best_idx]*frame_secs, scores[best_idx], quality
 
 def get_skew_pairs(frame_rates):
     skew_pairs = [[a,b] for a in frame_rates for b in frame_rates]
@@ -36,17 +38,18 @@ def find_transform(y_subs, y_probs, max_shift_secs=10.0, frame_rates=[23.976, 24
         print('max shift %gs, test increments %gs' % (max_shift_secs, frame_secs))
         print('testing with skews: ' + ', '.join(skew_labels))
 
-    shift_and_score = np.array([list(best_shift(y_subs, y_probs, max_shift_secs, skew)) for skew in skews])
+    shift_score_quality = np.array([list(best_shift(y_subs, y_probs, max_shift_secs, skew)) for skew in skews])
     if verbose:
-        print(shift_and_score)
+        print(shift_score_quality)
         
-    best_idx = np.argmax(shift_and_score[:,1])
+    best_idx = np.argmax(shift_score_quality[:,1])
     
-    shift = shift_and_score[best_idx,0]
+    shift = shift_score_quality[best_idx,0]
     skew = skews[best_idx]
+    quality = shift_score_quality[best_idx,2]
         
     if verbose:
         skew_label = skew_labels[best_idx]
         print('optimal shift: %g seconds, skew: %s' % (shift, skew_label))
     
-    return lambda x: x * skew + shift
+    return lambda x: x * skew + shift, quality
