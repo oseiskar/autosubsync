@@ -13,11 +13,24 @@ def convert_subs_to_csv(input_file, output_file):
 
 def import_sound(sound_path):
     import soundfile
+
+    target_sample_rate = 20000
+    warning_threshold = 8000
+
     sound_data, sample_rate = soundfile.read(sound_path)
+
+    ds_factor = max(int(np.floor(sample_rate / target_sample_rate)), 1)
+    sound_data = sound_data[::ds_factor]
+    sample_rate = sample_rate / ds_factor
+
+    if sample_rate < warning_threshold:
+        # probably never happens but checking anyway
+        sys.stderr.write('warning: low sound sample rate %d Hz\n' % sample_rate)
+
     return sound_data, sample_rate
 
 def build_sub_vec(subs, sample_rate, n, sub_filter=None):
-    subvec = np.zeros(n)
+    subvec = np.zeros(n, np.bool)
     to_index = lambda x: int(sample_rate*x)
     for _, line in subs.iterrows():
         if sub_filter is not None and not sub_filter(line['text']): continue
@@ -36,7 +49,7 @@ def import_sub_csv(subs_csv_path, sample_rate, n, **kwargs):
         if rel_err > 0.25: # warning threshold
             sys.stderr.write(" *** WARNING: subtitle and audio lengths " + \
                              "differ by %d%%. Wrong subtitle file?\n" % int(rel_err*100))
-            
+
     else:
         sys.stderr.write(" *** WARNING: empty subtitle file\n")
     return build_sub_vec(subs, sample_rate, n, **kwargs)
@@ -75,7 +88,7 @@ def import_target_files(video_file, subtitle_file, **kwargs):
     tmp_dir = tempfile.mkdtemp()
     sound_file = os.path.join(tmp_dir, 'sound.flac')
     subs_tmp = os.path.join(tmp_dir, 'subs.csv')
-    
+
     def clear():
         for to_delete in [sound_file, subs_tmp]:
             #print('deleting', to_delete)
@@ -84,13 +97,13 @@ def import_target_files(video_file, subtitle_file, **kwargs):
         try: os.rmdir(tmp_dir)
         except: pass
         print('Cleared temporary data')
-    
+
     try:
         print('Extracting audio using ffmpeg and reading subtitles...')
         extract_sound(video_file, sound_file)
         convert_subs_to_csv(subtitle_file, subs_tmp)
         return import_item(sound_file, subs_tmp, **kwargs)
-        
+
     finally:
         clear()
 
