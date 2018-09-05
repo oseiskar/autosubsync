@@ -47,16 +47,15 @@ def split_to_chunks(n, chunk_size):
         yield(slice(i_begin, i_end))
         i_begin = i_end
 
-def maybe_parallel_map(f, data, n_processes=1):
+def maybe_parallel_starmap(f, data, n_processes=1):
     if n_processes > 1:
         from multiprocessing import Pool
         with Pool(n_processes) as p:
-            return p.map(f, data)
+            return p.starmap(f, data)
     else:
-        return [f(c) for c in data]
+        return [f(*c) for c in data]
 
-def compute_chunk_features(data):
-    sound_data_chunk, frame_size, frame_secs = data
+def compute_chunk_features(sound_data_chunk, frame_size, frame_secs):
     training_x = split_to_frames(sound_data_chunk, frame_size)
     spectra = compute_spectra(apply_windowing(training_x), 3*frame_secs)
     return compute_banks(spectra, n_banks=50)
@@ -73,7 +72,7 @@ def compute(sound_data, subvec, sample_rate, n_processes=3):
         return np.round(np.mean(split_to_frames(subvec[chunk], frame_size), axis=1))
 
     data_chunks = [(sound_data[c], frame_size, frame_secs) for c in chunks]
-    all_x = np.vstack(maybe_parallel_map(compute_chunk_features, data_chunks, n_processes))
+    all_x = np.vstack(maybe_parallel_starmap(compute_chunk_features, data_chunks, n_processes))
     all_y = np.hstack([compute_chunk_labels(c) for c in chunks])
 
     return all_x, all_y
@@ -85,7 +84,7 @@ def compute_table(index_file):
     all_numbers = []
     all_languages = []
     for sound_data, subvec, sample_rate, language, file_number in preprocessing.read_training_data(index_file):
-        print('computing features for file %d' % file_number)
+        print('file %d' % file_number)
         training_x, training_y = compute(sound_data, subvec, sample_rate)
         all_x.append(training_x)
         all_y.extend(training_y)

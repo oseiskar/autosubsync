@@ -32,7 +32,7 @@ if __name__ == '__main__':
     p.add_argument('subtitle_file')
     p.add_argument('output_file')
     p.add_argument('--model_file', default='trained-model.bin')
-    p.add_argument('--max_shift_secs', default=10.0, type=float)
+    p.add_argument('--max_shift_secs', default=20.0, type=float)
     p.add_argument('--parallelism', default=3, type=int)
     args = p.parse_args()
 
