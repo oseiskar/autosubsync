@@ -34,7 +34,10 @@ if __name__ == '__main__':
     p.add_argument('--model_file', default='trained-model.bin')
     p.add_argument('--max_shift_secs', default=20.0, type=float)
     p.add_argument('--parallelism', default=3, type=int)
+    p.add_argument('--fixed_skew', default=None)
     args = p.parse_args()
 
     scores = main(args.model_file, args.video_file, args.subtitle_file, args.output_file,\
-                  max_shift_secs=args.max_shift_secs, n_processes=args.parallelism)
+                  max_shift_secs=args.max_shift_secs, \
+                  n_processes=args.parallelism,
+                  fixed_skew=args.fixed_skew)
