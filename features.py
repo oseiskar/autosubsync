@@ -1,5 +1,8 @@
 import numpy as np
+import os
 import sys
+
+import preprocessing
 
 frame_secs = 0.05
 
@@ -77,13 +80,23 @@ def compute(sound_data, subvec, sample_rate, n_processes=3):
 
     return all_x, all_y
 
+def read_training_data(index_file):
+    import csv
+    base_path = os.path.dirname(index_file)
+    locate = lambda f: os.path.join(base_path, f)
+    file_number = 0
+    with open(index_file) as index:
+        for item in csv.DictReader(index):
+            file_number += 1
+            sound_data, sub_vec, sample_rate = preprocessing.import_item(locate(item['sound']), locate(item['subtitles']))
+            yield(sound_data, sub_vec, sample_rate, item['language'], file_number)
+
 def compute_table(index_file):
-    import preprocessing
     all_x = []
     all_y = []
     all_numbers = []
     all_languages = []
-    for sound_data, subvec, sample_rate, language, file_number in preprocessing.read_training_data(index_file):
+    for sound_data, subvec, sample_rate, language, file_number in read_training_data(index_file):
         print('file %d' % file_number)
         training_x, training_y = compute(sound_data, subvec, sample_rate)
         all_x.append(training_x)

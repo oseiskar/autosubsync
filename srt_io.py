@@ -12,11 +12,11 @@ def read_file(input_file):
     def parse_time(timestamp):
         hours, minutes, secs = timestamp.split(b':')
         return (int(hours)*60 + int(minutes))*60 + float(secs.replace(b',', b'.'))
-    
+
     def convert_line_ending(data):
         "Convert line endings to UNIX"
         return data.replace(b'\r\n', b'\n').replace(b'\r', b'\n')
-    
+
     def remove_boms(data):
         "remove UTF BOMs if present"
         BOMS = [b'\xEF\xBB\xBF', b'\xFE\xFF']
@@ -27,20 +27,20 @@ def read_file(input_file):
 
     with open(input_file, 'rb') as f:
         srt_data = f.read()
-    
+
     srt_data = convert_line_ending(remove_boms(srt_data))
-   
+
     for line_block in srt_data.split(b'\n\n'):
         line_block = line_block.strip()
         if len(line_block) == 0: continue
         block = line_block.split(b'\n')
-        
+
         seq = int(block[0])
         times = block[1]
         begin, _, end = times.partition(b' --> ')
         text = b'\n'.join(block[2:])
         yield(seq, parse_time(begin), parse_time(end), text)
-            
+
 class writer:
     """
     Writer for SRT files. Outputs windows line endings and no UTF BOMs
@@ -49,23 +49,23 @@ class writer:
         "Create writer for an open file, which should be in binary mode"
         self.seq = 1
         self.file = file
-    
+
     def write(self, begin, end, text):
         self._write_line_ascii(self.seq)
         self._write_line_ascii(self._format_time(begin) + ' --> ' + self._format_time(end))
         self._write_line_binary(text) # can be almost any encoding
         self._write_line_ascii('') # empty line
         self.seq += 1
-        
+
     def _write_line_ascii(self, thing):
         "Write something as text (must only contain ASCII characters)"
         self._write_line_binary(str(thing).encode('ascii'))
-    
+
     def _write_line_binary(self, data):
         "Write binary data, for example, text in any encoding"
         data = data.rstrip().replace(b'\n', b'\r\n')
         self.file.write(data + b'\r\n')
-    
+
     def _format_time(self, t_secs):
         msecs = round(t_secs*1000)
         secs = int(msecs / 1000) % 60

@@ -1,15 +1,7 @@
-import csv
 import os
 import sys
 import numpy as np
 import srt_io
-
-def convert_subs_to_csv(input_file, output_file):
-    with open(output_file, 'wt') as out:
-        writer = csv.writer(out)
-        writer.writerow(['begin', 'end', 'text'])
-        for _, begin, end, text in srt_io.read_file(input_file):
-            writer.writerow([begin, end, text])
 
 def import_sound(sound_path):
     import soundfile
@@ -39,10 +31,15 @@ def build_sub_vec(subs, sample_rate, n, sub_filter=None):
         subvec[to_index(begin):to_index(end)] = 1
     return subvec
 
-def import_sub_csv(subs_csv_path, sample_rate, n, **kwargs):
+def read_srt_to_data_frame(fn):
     import pandas as pd
+    rows = [list(x) for x in srt_io.read_file(fn)]
+    df = pd.DataFrame(rows, columns=['seq', 'begin', 'end', 'text'])
+    return df.set_index('seq')
+
+def import_subs(srt_filename, sample_rate, n, **kwargs):
     audio_length = n / float(sample_rate)
-    subs = pd.read_csv(subs_csv_path)
+    subs = read_srt_to_data_frame(srt_filename)
     if subs.shape[1] > 0:
         subs_length = subs.end.max()
         rel_err = abs(subs_length - audio_length) / max(subs_length, audio_length)
@@ -57,7 +54,7 @@ def import_sub_csv(subs_csv_path, sample_rate, n, **kwargs):
 def import_item(sound_file, subtitle_file, **kwargs):
     sound_data, sample_rate = import_sound(sound_file)
     n = len(sound_data)
-    sub_vec = import_sub_csv(subtitle_file, sample_rate, n, **kwargs)
+    sub_vec = import_subs(subtitle_file, sample_rate, n, **kwargs)
     return sound_data, sub_vec, sample_rate
 
 def extract_sound(input_video_file, output_sound_file):
@@ -72,28 +69,16 @@ def extract_sound(input_video_file, output_sound_file):
     ]
     subprocess.call(convert_cmd)
 
-def read_training_data(index_file):
-    base_path = os.path.dirname(index_file)
-    locate = lambda f: os.path.join(base_path, f)
-    file_number = 0
-    with open(index_file) as index:
-        for item in csv.DictReader(index):
-            file_number += 1
-            sound_data, sub_vec, sample_rate = import_item(locate(item['sound']), locate(item['subtitles']))
-            yield(sound_data, sub_vec, sample_rate, item['language'], file_number)
-
 def import_target_files(video_file, subtitle_file, **kwargs):
     "Import prediction target files using a temporary directory"
     import tempfile
     tmp_dir = tempfile.mkdtemp()
     sound_file = os.path.join(tmp_dir, 'sound.flac')
-    subs_tmp = os.path.join(tmp_dir, 'subs.csv')
 
     def clear():
-        for to_delete in [sound_file, subs_tmp]:
-            #print('deleting', to_delete)
-            try: os.unlink(to_delete)
-            except: pass
+        try: os.unlink(sound_file)
+        except: pass
+
         try: os.rmdir(tmp_dir)
         except: pass
         print('Cleared temporary data')
@@ -101,8 +86,7 @@ def import_target_files(video_file, subtitle_file, **kwargs):
     try:
         print('Extracting audio using ffmpeg and reading subtitles...')
         extract_sound(video_file, sound_file)
-        convert_subs_to_csv(subtitle_file, subs_tmp)
-        return import_item(sound_file, subs_tmp, **kwargs)
+        return import_item(sound_file, subtitle_file, **kwargs)
 
     finally:
         clear()
