@@ -3,6 +3,15 @@ import numpy as np
 from features import frame_secs
 import quality_of_fit
 
+def score_function(labels, probs):
+    "Score for binary labels vs probabilistic predictions"
+    # Computes "expected accuracy" of labels vs predicted, where the
+    # components of predicted are independent and Bernoulli distributed
+    # with probabilities given by probs. Has a similar effect than using
+    # sklearn.roc_auc_score but this is faster to compute
+    labels = labels == 1
+    return (np.sum(probs[labels]) + np.sum(1.0 - probs[~labels]))/float(len(labels))
+
 def sub_score_transform(y_true, y_probs, func):
     y_true = np.array(list(y_true))
     n = len(y_true)
@@ -11,15 +20,23 @@ def sub_score_transform(y_true, y_probs, func):
     valid_indices = (shifted_indices >= 0) & (shifted_indices < n)
     y_shift[shifted_indices[valid_indices]] = y_true[valid_indices]
 
-    return np.mean(np.round(y_shift) == np.round(y_probs)) * np.mean(valid_indices)
+    missed_fraction = np.sum(y_true[~valid_indices])
+    penalty_factor = 1.0 - missed_fraction / float(n)
+
+    return score_function(y_shift, y_probs) * penalty_factor
 
 def sub_score(y_true, y_probs, shift=0, skew=1.0):
     return sub_score_transform(y_true, y_probs, lambda x: x*skew + shift*frame_secs)
 
-def best_shift(y_subs, y_probs, max_shift_secs=2.0, skew=1.0):
-    max_shift = int(max_shift_secs/frame_secs)+1
-    shifts = range(-max_shift, max_shift)
+def compute_shift_scores(y_subs, y_probs, max_shift_secs=2.0, skew=1.0, base_shift_secs=0.0):
+    min_shift = int((base_shift_secs - max_shift_secs)/frame_secs)
+    max_shift = int((base_shift_secs + max_shift_secs)/frame_secs)+1
+    shifts = range(min_shift, max_shift)
     scores = [sub_score(y_subs, y_probs, shift, skew) for shift in shifts]
+    return shifts, scores
+
+def best_shift(*args, **kwargs):
+    shifts, scores = compute_shift_scores(*args, **kwargs)
     quality = quality_of_fit.compute_quality(scores)
     best_idx = np.argmax(scores)
     return [shifts[best_idx]*frame_secs, scores[best_idx], quality]
