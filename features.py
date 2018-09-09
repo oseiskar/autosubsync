@@ -11,14 +11,19 @@ def split_to_frames(data, frame_size):
     data = data[:(n_frames*frame_size)]
     return np.reshape(data, (n_frames, frame_size))
 
-def expand_to_adjacent(frames):
-    before = frames * 0
-    before[1:,:] = frames[:-1,:]
+def expand_to_adjacent(frames, width=1):
+    neighbours = [frames]
+    for w in range(1, width+1):
 
-    after = frames * 0
-    after[:-1,:] = frames[1:,:]
+        before = frames * 0
+        before[w:,:] = frames[:-w,:]
+        neighbours.insert(0, before)
 
-    return np.hstack((before, frames, after))
+        after = frames * 0
+        after[:-w,:] = frames[w:,:]
+        neighbours.append(after)
+
+    return np.hstack(neighbours)
 
 def apply_windowing(frames):
     extended = expand_to_adjacent(frames)
