@@ -8,7 +8,7 @@ if __name__ == '__main__':
     print('training data extracted, shape ' + str(data_x.shape))
 
     print('training...')
-    trained = model.train(data_x, data_meta.label.values, data_meta.file_number.values)
+    trained = model.train(data_x, data_meta.label.values, data_meta)
 
     target_file = 'trained-model.bin'
     print('serializing model to ' + target_file)

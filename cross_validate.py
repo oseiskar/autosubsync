@@ -5,8 +5,6 @@ import find_transform
 import quality_of_fit
 import model
 
-np.random.seed(1)
-
 def cv_split_by_file(data_meta, data_x):
     files = np.unique(data_meta.file_number)
     np.random.shuffle(files)
@@ -80,6 +78,7 @@ if __name__ == '__main__':
     print('loaded training features of size', data_x.shape)
     data_meta = pd.read_csv('training-data/meta.csv', index_col=0)
     n_folds = 4
+    np.random.seed(1)
 
     correct_qualities = []
 
@@ -88,7 +87,7 @@ if __name__ == '__main__':
         train_meta, train_x, test_meta, test_x = cv_split_by_file(data_meta, data_x)
 
         print('Training...', train_x.shape)
-        trained_model = model.train(train_x, train_meta.label, train_meta.file_number)
+        trained_model = model.train(train_x, train_meta.label, train_meta)
 
         print('Validating...')
         predicted_score = model.predict(trained_model, test_x, test_meta.file_number)

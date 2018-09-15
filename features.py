@@ -94,6 +94,82 @@ def compute(sound_data, subvec, sample_rate, n_processes=3):
 
     return all_x, all_y
 
+def normalize_by_file(data_x, normalize_func, file_labels=None):
+    if file_labels is None:
+        return normalize(data_x)
+
+    result_x = np.empty(data_x.shape)
+    for label in np.unique(file_labels):
+        part = file_labels == label
+        result_x[part, :] = normalize_func(data_x[part, :])
+    return result_x
+
+def balance_file_lengths(file_labels):
+    unique_labels = np.unique(file_labels)
+    lengths = [np.sum(file_labels == label) for label in unique_labels]
+    selected_length = int(np.median(lengths))
+
+    selected = np.zeros(len(file_labels), dtype=bool)
+
+    for label in unique_labels:
+        part = file_labels == label
+        selected[part & (np.cumsum(part) <= selected_length)] = True
+
+    return selected
+
+def balance_by_group(group_labels, file_labels, min_proportion_of_each_group=0.5):
+    unique_groups = np.unique(group_labels)
+    lengths = [np.sum(group_labels == g) for g in unique_groups]
+    target_group_size = int(max(np.min(lengths), min_proportion_of_each_group*np.max(lengths)))
+
+    selected = np.zeros(len(group_labels), dtype=bool)
+
+    for group in unique_groups:
+        group_files = np.unique(file_labels[group_labels == group])
+        group_file_sizes = sorted([np.sum(file_labels == l) for l in group_files])
+
+        # distribute available quota to files evenly, taking into account
+        # that smaller files may be utilized fully
+        max_size = target_group_size // len(group_files)
+        while True:
+            spent = np.sum([min(max_size, l) for l in group_file_sizes])
+            extra = target_group_size - spent
+            if extra <= 0: break
+            n_bigger = len([l for l in group_file_sizes if l > max_size])
+            if n_bigger == 0: break
+
+            extra_each = extra // n_bigger
+            if extra_each == 0: break
+
+            max_size += extra_each
+
+        for f in group_files:
+            file_part = file_labels == f
+            file_part = file_part & (np.cumsum(file_part) <= max_size)
+            selected[file_part] = True
+
+    return selected
+
+def weight_by_group(group_labels):
+    weights = np.zeros(len(group_labels))
+
+    for g in np.unique(group_labels):
+        part = group_labels == g
+        w = 1.0 / np.sum(part)
+        weights[part] = w
+
+    return weights / np.mean(weights)
+
+def weight_by_group_and_file(group_labels, file_labels):
+    weights = np.zeros(len(group_labels))
+    for g in np.unique(group_labels):
+        part = group_labels == g
+        weights[part] = weight_by_group(file_labels[part])
+        weights[part] /= np.sum(weights[part])
+
+    return weights / np.mean(weights)
+
+
 def read_training_data(index_file):
     import csv
     base_path = os.path.dirname(index_file)
