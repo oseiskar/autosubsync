@@ -21,15 +21,47 @@ def normalize_by_file(data_x, file_labels=None):
     result_x = np.empty(data_x.shape)
     for label in np.unique(file_labels):
         part = file_labels == label
-        result_x[part, :] = normalize(data_x[part])
+        result_x[part, :] = normalize(data_x[part, :])
     return result_x
+
+def balance_file_lengths(data_x, data_y, file_labels=None):
+    if file_labels is None:
+        raise RuntimeError("must have file labels to balance by file")
+
+    unique_labels = np.unique(file_labels)
+    lengths = [np.sum(file_labels == label) for label in unique_labels]
+    selected_length = int(np.median(lengths))
+
+    print(lengths)
+    print(selected_length)
+
+    result_xs = []
+    result_ys = []
+    result_labels = []
+
+    for label in unique_labels:
+        part = file_labels == label
+        selected = part & (np.cumsum(part) <= selected_length)
+
+        result_xs.append(data_x[selected, :])
+        result_ys.append(np.ravel(data_y[selected]))
+        result_labels.append(np.ravel(file_labels[selected]))
+
+    return np.vstack(result_xs), np.hstack(result_ys), np.hstack(result_labels)
+
 
 def train(training_x, training_y, training_file_labels=None):
     from sklearn.linear_model import LogisticRegression as classifier
     #from sklearn.ensemble import GradientBoostingClassifier as classifier
 
+    training_x, training_y, training_file_labels = \
+        balance_file_lengths(training_x, training_y, training_file_labels)
+
+    training_x = normalize_by_file(training_x, training_file_labels)
+    training_x = transform(training_x)
+
     model = classifier(penalty='l1', C=0.001)
-    model.fit(transform(normalize_by_file(training_x, training_file_labels)), training_y)
+    model.fit(training_x, training_y)
     return model
 
 def predict(model, test_x, file_labels=None):
