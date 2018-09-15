@@ -28,7 +28,7 @@ def sub_score_transform(y_true, y_probs, func):
 def sub_score(y_true, y_probs, shift=0, skew=1.0):
     return sub_score_transform(y_true, y_probs, lambda x: x*skew + shift*frame_secs)
 
-def compute_shift_scores(y_subs, y_probs, max_shift_secs=2.0, skew=1.0, base_shift_secs=0.0):
+def compute_shift_scores(y_subs, y_probs, max_shift_secs=20.0, skew=1.0, base_shift_secs=0.0):
     min_shift = int((base_shift_secs - max_shift_secs)/frame_secs)
     max_shift = int((base_shift_secs + max_shift_secs)/frame_secs)+1
     shifts = range(min_shift, max_shift)
@@ -52,7 +52,7 @@ def get_skew_pairs(frame_rates, fixed_skew=None):
     uniq_idx = np.unique(skews, return_index=True)[1]
     return skews[uniq_idx], ['%g/%g' % (skew_pairs[i,0], skew_pairs[i,1]) for i in uniq_idx]
 
-def find_transform_parameters(y_subs, y_probs, max_shift_secs=10.0, frame_rates=[23.976, 24, 25], fixed_skew=None, verbose=False, n_processes=3):
+def find_transform_parameters(y_subs, y_probs, max_shift_secs=20.0, frame_rates=[23.976, 24, 25], fixed_skew=None, verbose=False, n_processes=3):
     skews, skew_labels = get_skew_pairs(frame_rates, fixed_skew=fixed_skew)
     if verbose:
         print('max shift %gs, test increments %gs' % (max_shift_secs, frame_secs))
@@ -66,7 +66,7 @@ def find_transform_parameters(y_subs, y_probs, max_shift_secs=10.0, frame_rates=
 
     if verbose:
         import pandas as pd
-        print(pd.DataFrame(shift_score_quality, index=skew_labels))
+        print(pd.DataFrame(shift_score_quality, index=skew_labels).assign(skew=skews))
 
     best_idx = np.argmax(shift_score_quality[:,1])
 

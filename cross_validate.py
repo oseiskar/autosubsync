@@ -77,11 +77,11 @@ if __name__ == '__main__':
     data_meta = pd.read_csv('training-data/meta.csv', index_col=0)
 
     train_meta, train_x, test_meta, test_x = cv_split_by_file(data_meta, data_x)
-    trained_model = model.train(train_x, train_meta.label)
+    trained_model = model.train(train_x, train_meta.label, train_meta.file_number)
     print('model trained')
 
     print('## Validation phase')
-    predicted_score = model.predict(trained_model, test_x)
+    predicted_score = model.predict(trained_model, test_x, test_meta.file_number)
     result_meta = test_meta.assign(predicted_score=predicted_score)
     result_meta = result_meta.assign(predicted_label=np.round(predicted_score))
     result_meta = result_meta.assign(label=np.round(result_meta.label))

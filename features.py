@@ -11,19 +11,28 @@ def split_to_frames(data, frame_size):
     data = data[:(n_frames*frame_size)]
     return np.reshape(data, (n_frames, frame_size))
 
+def shift_frames(frames, delta):
+    if delta == 0:
+        return frames
+    result = frames*0
+    if delta > 0:
+        result[delta:,:] = frames[:-delta]
+    else:
+        result[:delta,:] = frames[-delta:,:]
+    return result
+
 def expand_to_adjacent(frames, width=1):
-    neighbours = [frames]
-    for w in range(1, width+1):
+    return np.hstack([shift_frames(frames, delta) for delta in range(-width,width+1)])
 
-        before = frames * 0
-        before[w:,:] = frames[:-w,:]
-        neighbours.insert(0, before)
-
-        after = frames * 0
-        after[:-w,:] = frames[w:,:]
-        neighbours.append(after)
-
-    return np.hstack(neighbours)
+def rolling_aggregates(frames, width=1, aggregate=np.mean):
+    # compute per feature
+    result = np.empty(frames.shape)
+    shifts = range(-width, width+1)
+    for feature_index in range(result.shape[1]):
+        feature_col = frames[:,feature_index][:,np.newaxis]
+        windows = np.hstack([shift_frames(feature_col, delta) for delta in shifts])
+        result[:, feature_index] = aggregate(windows, axis=1)
+    return result
 
 def apply_windowing(frames):
     extended = expand_to_adjacent(frames)
