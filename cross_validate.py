@@ -99,6 +99,8 @@ if __name__ == '__main__':
         validate_speech_detection(result_meta)
         correct_qualities.extend(test_correct_sync(result_meta))
 
+    correct_qualities = np.array(correct_qualities)
+
     print('### Quailty of fit mismatch test (with last fold)')
     mismatch_qualities = test_quality_of_fit_mismatch(result_meta)
 
