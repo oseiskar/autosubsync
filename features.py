@@ -96,7 +96,7 @@ def compute(sound_data, subvec, sample_rate, n_processes=3):
 
 def normalize_by_file(data_x, normalize_func, file_labels=None):
     if file_labels is None:
-        return normalize(data_x)
+        return normalize_func(data_x)
 
     result_x = np.empty(data_x.shape)
     for label in np.unique(file_labels):
@@ -168,7 +168,6 @@ def weight_by_group_and_file(group_labels, file_labels):
         weights[part] /= np.sum(weights[part])
 
     return weights / np.mean(weights)
-
 
 def read_training_data(index_file):
     import csv
