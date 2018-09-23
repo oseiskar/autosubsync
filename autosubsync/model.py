@@ -14,7 +14,6 @@ def normalize(data_x):
     #return data_x - np.mean(data_x, axis=0)
     return data_x
 
-
 def find_sync_bias(speech_detection, training_x, training_y, training_meta, verbose=False):
     import find_transform
     shifts = []

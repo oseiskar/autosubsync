@@ -24,20 +24,19 @@ A correction for both shift and playing speed can be found automatically.
 ### Training the model
 
  1. Collect a bunch of well-synchronized video and subtitle files and put them
-    in a file called `training-sources.csv` (see `training-sources.csv.example`)
- 2. Run `python3 build_training_data.py` to populate the folder `training-data/`
- 3. Run `python3 train.py`
+    in a file called `training/sources.csv` (see `training/sources.csv.example`)
+ 2. Run `python3 training/build_training_data.py` to populate the folder `training/data/`
+ 3. Run `python3 training/train.py`
 
 ### Syncronization (predict)
 
 Assumes trained model is available as `trained-model.bin`
 
-    python3 main.py input-video-file input-subs.srt synced-subs.srt
+    python3 autosubsync/main.py input-video-file input-subs.srt synced-subs.srt
 
 ### Cross-validation
 
-    python3 features.py # precompute features for all training data
-    python3 cross_validate.py
+    python3 training/cross_validate.py
 
 ### References
 

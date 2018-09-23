@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd
 
+import train
+
 import find_transform
 import quality_of_fit
 import model
@@ -77,9 +79,9 @@ def test_quality_of_fit_mismatch(result_meta, bias=0):
 
 if __name__ == '__main__':
 
-    data_x = np.load('training-data/features.npy')
+    data_x, data_meta = train.load_features()
+
     print('loaded training features of size', data_x.shape)
-    data_meta = pd.read_csv('training-data/meta.csv', index_col=0)
     n_folds = 4
     np.random.seed(1)
 

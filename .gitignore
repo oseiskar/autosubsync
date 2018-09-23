@@ -1,7 +1,7 @@
 .ipynb_checkpoints/
 __pycache__
-training-sources.csv
-training-data/
+training/sources.csv
+training/data/
 notebooks/
 *.pyc
 trained-model.bin

@@ -1,17 +1,19 @@
 #!/usr/bin/python3
-import csv, os, subprocess
+import csv, os, sys, subprocess
 
-TRAINING_FOLDER = 'training-data/'
+TRAINING_FOLDER = 'training/data/'
 
 if not os.path.exists(TRAINING_FOLDER):
     os.makedirs(TRAINING_FOLDER)
+
+sys.path.append('autosubsync')
 
 from preprocessing import extract_sound
 from shutil import copyfile
 
 indexfile = os.path.join(TRAINING_FOLDER, 'index.csv')
 sound_id = 1
-with open('training-sources.csv') as f, open(indexfile, 'wt') as index:
+with open('training/sources.csv') as f, open(indexfile, 'wt') as index:
     indexwriter = csv.writer(index)
     indexwriter.writerow(['sound', 'subtitles', 'language'])
     for line in csv.DictReader(f):
