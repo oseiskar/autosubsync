@@ -52,11 +52,12 @@ def get_skew_pairs(frame_rates, fixed_skew=None):
     uniq_idx = np.unique(skews, return_index=True)[1]
     return skews[uniq_idx], ['%g/%g' % (skew_pairs[i,0], skew_pairs[i,1]) for i in uniq_idx]
 
-def find_transform_parameters(y_subs, y_probs, max_shift_secs=20.0, frame_rates=[23.976, 24, 25], fixed_skew=None, verbose=False, n_processes=3):
+def find_transform_parameters(y_subs, y_probs, max_shift_secs=20.0, frame_rates=[23.976, 24, 25], bias=0, fixed_skew=None, verbose=False, n_processes=3):
     skews, skew_labels = get_skew_pairs(frame_rates, fixed_skew=fixed_skew)
     if verbose:
         print('max shift %gs, test increments %gs' % (max_shift_secs, frame_secs))
         print('testing with skews: ' + ', '.join(skew_labels))
+        print('bias', bias)
 
     from features import maybe_parallel_starmap
     shift_score_quality = np.array(maybe_parallel_starmap( \
@@ -70,7 +71,7 @@ def find_transform_parameters(y_subs, y_probs, max_shift_secs=20.0, frame_rates=
 
     best_idx = np.argmax(shift_score_quality[:,1])
 
-    shift = shift_score_quality[best_idx,0]
+    shift = shift_score_quality[best_idx,0] + bias
     skew = skews[best_idx]
     quality = shift_score_quality[best_idx,2]
 

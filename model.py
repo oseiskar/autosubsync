@@ -14,33 +14,68 @@ def normalize(data_x):
     #return data_x - np.mean(data_x, axis=0)
     return data_x
 
-def train(training_x, training_y, training_meta):
+
+def find_sync_bias(speech_detection, training_x, training_y, training_meta, verbose=False):
+    import find_transform
+    shifts = []
+    accs = []
+
+    if verbose:
+        print('finding sync bias')
+
+    for file_number in np.unique(training_meta.file_number):
+        part = training_meta.file_number == file_number
+        y = training_y[part]
+        predicted_score = predict([speech_detection, None], training_x[part, :], y)
+        shift = find_transform.find_transform_parameters(y, predicted_score, fixed_skew=1.0)[1]
+        acc = np.mean(np.round(predicted_score) == y)
+        shifts.append(shift)
+        accs.append([acc, len(y)])
+
+        if verbose:
+            print(shift)
+
+    accs = np.array(accs)
+    acc = np.sum(accs[:,0]*accs[:,1])/np.sum(accs[:,1])
+    bias = -np.round(np.mean(shifts) / features.frame_secs) * features.frame_secs
+
+    if verbose:
+        print('training accuracy', acc)
+        print('bias %g s' % bias)
+
+    return bias
+
+def train(training_x, training_y, training_meta, verbose=False):
     from sklearn.linear_model import LogisticRegression as classifier
     #from sklearn.ensemble import GradientBoostingClassifier as classifier
 
     file_labels = training_meta.file_number.values
 
-    #selected_part = features.balance_file_lengths(file_labels)
-    #selected_part = features.balance_by_group(training_meta.language, file_labels)
-    #training_x = training_x[selected_part, :]
-    #training_y = training_y[selected_part]
-    #file_labels = file_labels[selected_part]
-
     training_weights = features.weight_by_group_and_file(training_meta.language, file_labels)
-    #training_weights = features.weight_by_group(file_labels)
+    #print(np.unique(training_weights))
+    training_x_normalized = features.normalize_by_file(training_x, normalize, file_labels)
+    training_x_normalized = transform(training_x_normalized)
 
-    print(np.unique(training_weights))
-    training_x = features.normalize_by_file(training_x, normalize, file_labels)
-    training_x = transform(training_x)
+    speech_detection = classifier(penalty='l1', C=0.001)
+    speech_detection.fit(training_x_normalized, training_y, sample_weight=training_weights)
 
-    model = classifier(penalty='l1', C=0.001)
-    model.fit(training_x, training_y, sample_weight=training_weights)
-    return model
+    if verbose:
+        print(speech_detection)
+
+    # save some memory
+    del training_x_normalized
+    del training_weights
+
+    # find synchronization bias
+    bias = find_sync_bias(speech_detection, training_x, training_y, training_meta, verbose=verbose)
+
+    return [speech_detection, bias]
 
 def predict(model, test_x, file_labels=None):
+    speech_detection = model[0]
     test_x = features.normalize_by_file(test_x, normalize, file_labels)
     test_x = transform(test_x)
-    return model.predict_proba(test_x)[:,1]
+    return speech_detection.predict_proba(test_x)[:,1]
 
 def serialize(model):
     import pickle

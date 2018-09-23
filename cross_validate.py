@@ -20,30 +20,33 @@ def cv_split_by_file(data_meta, data_x):
 def validate_speech_detection(result_meta):
     print('---- speech detection accuracy ----')
 
-    print(result_meta.groupby('file_number').agg('mean'))
+    r = result_meta.groupby('file_number').agg('mean')
+    print(r)
     from sklearn.metrics import roc_auc_score
     print('AUC-ROC:', roc_auc_score(result_meta.label, result_meta.predicted_score))
+    return r
 
-def test_correct_sync(result_meta):
+def test_correct_sync(result_meta, bias=0):
     print('---- synchronization accuracy ----')
 
     results = []
     for file_number in np.unique(result_meta.file_number):
         part = result_meta[result_meta.file_number == file_number]
-        skew, shift, quality = find_transform.find_transform_parameters(part.label, part.predicted_score)
+        skew, shift, quality = find_transform.find_transform_parameters(part.label, part.predicted_score, bias=bias)
         skew_error = skew != 1.0
-        results.append([skew_error, shift, quality])
+        results.append([file_number, skew_error, shift, quality])
+        print(results[-1])
 
-    sync_results = pd.DataFrame(np.array(results), columns=['skew_error', 'shift_error', 'quality'])
+    sync_results = pd.DataFrame(np.array(results), columns=['file_number', 'skew_error', 'shift_error', 'quality'])
     print(sync_results)
 
     print('skew errors:', sync_results.skew_error.sum())
-    print('shift MAE:', np.mean(np.abs(sync_results.shift_error)))
+    print('shift RMSE:', np.sqrt(np.mean(sync_results.shift_error**2)))
 
-    return np.array(list(sync_results.quality))
+    return sync_results
 
 
-def test_quality_of_fit_mismatch(result_meta):
+def test_quality_of_fit_mismatch(result_meta, bias=0):
 
     all_files = np.unique(result_meta.file_number)
     pairs = [(n1, n2) for n1 in all_files for n2 in all_files if n2 != n1]
@@ -64,7 +67,7 @@ def test_quality_of_fit_mismatch(result_meta):
             if flip: probs = probs0[::-1]
             else: probs = probs0[::]
 
-            skew, shift, quality = find_transform.find_transform_parameters(labels, probs)
+            skew, shift, quality = find_transform.find_transform_parameters(labels, probs, bias=bias)
             quality_error = quality >= quality_of_fit.threshold
 
             qualities.append(quality)
@@ -80,14 +83,18 @@ if __name__ == '__main__':
     n_folds = 4
     np.random.seed(1)
 
-    correct_qualities = []
+    sync_results = []
 
     for i in range(n_folds):
         print('### Cross-validation fold %d/%d' % (i+1, n_folds))
         train_meta, train_x, test_meta, test_x = cv_split_by_file(data_meta, data_x)
 
         print('Training...', train_x.shape)
-        trained_model = model.train(train_x, train_meta.label, train_meta)
+        trained_model = model.train(train_x, train_meta.label, train_meta, verbose=True)
+
+        # save some memory
+        del train_x
+        del train_meta
 
         print('Validating...')
         predicted_score = model.predict(trained_model, test_x, test_meta.file_number)
@@ -96,13 +103,28 @@ if __name__ == '__main__':
         result_meta = result_meta.assign(label=np.round(result_meta.label))
         result_meta = result_meta.assign(correct=result_meta.predicted_label==result_meta.label)
 
-        validate_speech_detection(result_meta)
-        correct_qualities.extend(test_correct_sync(result_meta))
+        bias = trained_model[1]
+        r = validate_speech_detection(result_meta)
+        sync_r = test_correct_sync(result_meta, bias)
+        sync_results.append(sync_r.assign(speech_detection_accuracy=list(r.correct)))
 
-    correct_qualities = np.array(correct_qualities)
+    sync_results = pd.concat(sync_results)
+    print(sync_results)
+    print('skew errors:', sync_results.skew_error.sum())
+    print('shift RMSE:', np.sqrt(np.mean(sync_results.shift_error**2)))
+    print('shift max:', sync_results.shift_error.abs().max())
+    print('shift bias, mean:', sync_results.shift_error.mean(), 'median:', sync_results.shift_error.median())
+    print('speech detection accuracy (mean of means):', sync_results.speech_detection_accuracy.mean())
+
+    # save some more memory
+    del data_x
+    del data_meta
+
+    correct_qualities = np.asarray(sync_results.quality)
+    print('false negative quality errors:', np.sum(correct_qualities < quality_of_fit.threshold))
 
     print('### Quailty of fit mismatch test (with last fold)')
-    mismatch_qualities = test_quality_of_fit_mismatch(result_meta)
+    mismatch_qualities = test_quality_of_fit_mismatch(result_meta, bias)
 
     min_correct = np.min(correct_qualities)
     max_incorrect = np.max(mismatch_qualities)
@@ -113,5 +135,4 @@ if __name__ == '__main__':
     print('current threshold:', quality_of_fit.threshold)
     print('quality margin:', quality_margin)
 
-    print('false negative quality errors:', np.sum(correct_qualities < quality_of_fit.threshold))
     print('false positive quality errors:', np.sum(mismatch_qualities > quality_of_fit.threshold))
