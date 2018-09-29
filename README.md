@@ -9,17 +9,19 @@ there is a problem: the subtitles are not in sync with the movie.
 But fear not. This tool can resynchronize the subtitles without any human input.
 A correction for both shift and playing speed can be found automatically.
 
-### Features
+## Features
 
  * Automatic speed and shift correction
  * Wide video format support through [ffmpeg](https://www.ffmpeg.org/)
  * Supports all reasonably encoded SRT files
  * Quality-of-fit metric for checking sync success
 
-### Requirements
+## Requirements
 
  * Python 3
  * ffmpeg
+
+## Development
 
 ### Training the model
 
@@ -38,7 +40,15 @@ Assumes trained model is available as `trained-model.bin`
 
     python3 training/cross_validate.py
 
-### References
+### Build and distribution
+
+ * Create virtualenv: `python3 -m venv venvs/test-python3`
+ * Activate venv: `source venvs/test-python3/bin/activate`
+ * `pip install -e .`
+ * `pip install wheel`
+ * `python setup.py bdist_wheel`
+
+## References
 
 I first checked Google if someone had already tried to solve the same problem and found
 [this great blog post](https://albertosabater.github.io/Automatic-Subtitle-Synchronization/)

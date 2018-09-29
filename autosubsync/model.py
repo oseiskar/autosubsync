@@ -1,5 +1,6 @@
 import numpy as np
-import features
+import pickle
+from . import features
 
 def transform(data_x):
     return np.hstack([
@@ -15,7 +16,7 @@ def normalize(data_x):
     return data_x
 
 def find_sync_bias(speech_detection, training_x, training_y, training_meta, verbose=False):
-    import find_transform
+    from . import find_transform
     shifts = []
     accs = []
 
@@ -77,11 +78,9 @@ def predict(model, test_x, file_labels=None):
     return speech_detection.predict_proba(test_x)[:,1]
 
 def serialize(model):
-    import pickle
     return pickle.dumps(model)
 
 def deserialize(data):
-    import pickle
     return pickle.loads(data)
 
 def load(model_file):

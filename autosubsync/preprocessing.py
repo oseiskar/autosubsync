@@ -1,7 +1,10 @@
 import os
 import sys
+import tempfile
+import subprocess
 import numpy as np
-import srt_io
+import pandas as pd
+from . import srt_io
 
 def import_sound(sound_path):
     import soundfile
@@ -32,7 +35,6 @@ def build_sub_vec(subs, sample_rate, n, sub_filter=None):
     return subvec
 
 def read_srt_to_data_frame(fn):
-    import pandas as pd
     rows = [list(x) for x in srt_io.read_file(fn)]
     df = pd.DataFrame(rows, columns=['seq', 'begin', 'end', 'text'])
     return df.set_index('seq')
@@ -58,7 +60,6 @@ def import_item(sound_file, subtitle_file, **kwargs):
     return sound_data, sub_vec, sample_rate
 
 def extract_sound(input_video_file, output_sound_file):
-    import subprocess
     convert_cmd = [
         'ffmpeg',
         '-y', # overwrite if exists
@@ -71,7 +72,6 @@ def extract_sound(input_video_file, output_sound_file):
 
 def import_target_files(video_file, subtitle_file, **kwargs):
     "Import prediction target files using a temporary directory"
-    import tempfile
     tmp_dir = tempfile.mkdtemp()
     sound_file = os.path.join(tmp_dir, 'sound.flac')
 

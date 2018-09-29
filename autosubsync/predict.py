@@ -1,9 +1,9 @@
 import argparse
 import numpy as np
 
-import find_transform
-import features
-import model
+from . import find_transform
+from . import features
+from . import model
 
 def parse_skew(skew):
     if skew is None: return None

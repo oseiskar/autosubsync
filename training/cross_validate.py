@@ -3,9 +3,9 @@ import pandas as pd
 
 import train
 
-import find_transform
-import quality_of_fit
-import model
+from autosubsync import find_transform
+from autosubsync import quality_of_fit
+from autosubsync import model
 
 def cv_split_by_file(data_meta, data_x):
     files = np.unique(data_meta.file_number)

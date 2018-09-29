@@ -1,7 +1,7 @@
 import numpy as np
 
-from features import frame_secs
-import quality_of_fit
+from .features import frame_secs, maybe_parallel_starmap
+from . import quality_of_fit
 
 def score_function(labels, probs):
     "Score for binary labels vs probabilistic predictions"
@@ -59,7 +59,6 @@ def find_transform_parameters(y_subs, y_probs, max_shift_secs=20.0, frame_rates=
         print('testing with skews: ' + ', '.join(skew_labels))
         print('bias', bias)
 
-    from features import maybe_parallel_starmap
     shift_score_quality = np.array(maybe_parallel_starmap( \
         best_shift, \
         [(y_subs, y_probs, max_shift_secs, skew) for skew in skews], \

@@ -4,11 +4,11 @@ import csv
 import sys
 import os
 
-sys.path.append('autosubsync')
+sys.path.append('.')
 
-import features
-import model
-import preprocessing
+from autosubsync import features
+from autosubsync import model
+from autosubsync import preprocessing
 
 def read_training_data(index_file):
     base_path = os.path.dirname(index_file)

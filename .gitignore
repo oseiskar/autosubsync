@@ -5,3 +5,7 @@ training/data/
 notebooks/
 *.pyc
 trained-model.bin
+venvs/
+*.egg-info/
+dist/
+build/

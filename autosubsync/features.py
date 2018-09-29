@@ -2,7 +2,7 @@ import numpy as np
 import os
 import sys
 
-import preprocessing
+from . import preprocessing
 
 frame_secs = 0.05
 

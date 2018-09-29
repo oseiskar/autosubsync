@@ -6,9 +6,9 @@ TRAINING_FOLDER = 'training/data/'
 if not os.path.exists(TRAINING_FOLDER):
     os.makedirs(TRAINING_FOLDER)
 
-sys.path.append('autosubsync')
+sys.path.append('.')
 
-from preprocessing import extract_sound
+from autosubsync.preprocessing import extract_sound
 from shutil import copyfile
 
 indexfile = os.path.join(TRAINING_FOLDER, 'index.csv')
