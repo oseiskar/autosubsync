@@ -10,9 +10,6 @@ def transform(data_x):
     ])
 
 def normalize(data_x):
-    #from sklearn.preprocessing import StandardScaler
-    #return StandardScaler().fit_transform(data_x)
-    #return data_x - np.mean(data_x, axis=0)
     return data_x
 
 def find_sync_bias(speech_detection, training_x, training_y, training_meta, verbose=False):
@@ -47,16 +44,14 @@ def find_sync_bias(speech_detection, training_x, training_y, training_meta, verb
 
 def train(training_x, training_y, training_meta, verbose=False):
     from sklearn.linear_model import LogisticRegression as classifier
-    #from sklearn.ensemble import GradientBoostingClassifier as classifier
 
     file_labels = training_meta.file_number.values
 
     training_weights = features.weight_by_group_and_file(training_meta.language, file_labels)
-    #print(np.unique(training_weights))
     training_x_normalized = features.normalize_by_file(training_x, normalize, file_labels)
     training_x_normalized = transform(training_x_normalized)
 
-    speech_detection = classifier(penalty='l1', C=0.001)
+    speech_detection = classifier(penalty='l1', C=0.001, solver='liblinear')
     speech_detection.fit(training_x_normalized, training_y, sample_weight=training_weights)
 
     if verbose:

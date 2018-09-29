@@ -27,18 +27,16 @@ A correction for both shift and playing speed can be found automatically.
 
  1. Collect a bunch of well-synchronized video and subtitle files and put them
     in a file called `training/sources.csv` (see `training/sources.csv.example`)
- 2. Run `python3 training/build_training_data.py` to populate the folder `training/data/`
- 3. Run `python3 training/train.py`
+ 2. Run (and see) `train_and_test.sh`. This
+    * populates the `training/data` folder
+    * creates `trained-model.bin`
+    * runs cross-validation
 
 ### Syncronization (predict)
 
 Assumes trained model is available as `trained-model.bin`
 
     python3 autosubsync/main.py input-video-file input-subs.srt synced-subs.srt
-
-### Cross-validation
-
-    python3 training/cross_validate.py
 
 ### Build and distribution
 

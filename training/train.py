@@ -61,8 +61,8 @@ if __name__ == '__main__':
         data_x, data_meta = compute_feature_table(args.index_file)
         data_meta.to_csv(args.meta_file)
         np.save(args.features_file, data_x)
-    else:
-        data_x, data_meta = load_features(args.features_file, args.meta_file)
+
+    data_x, data_meta = load_features(args.features_file, args.meta_file)
 
     print('training data extracted, shape ' + str(data_x.shape))
 
