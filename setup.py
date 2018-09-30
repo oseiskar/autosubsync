@@ -5,15 +5,11 @@ from os import path
 with open('DESCRIPTION.rst') as f:
     long_description = f.read()
 
-# Read requirements from file
-with open('requirements.txt') as f:
-    requirements = f.read().split()
-
 package_name = 'autosubsync'
 
 setup(
     name=package_name,
-    version='0.1.0',
+    version='0.1.1',
     description='Automatically synchronize subtitles with audio',
     long_description=long_description,
     url='https://github.com/oseiskar/' + package_name,
@@ -33,6 +29,7 @@ setup(
         'Intended Audience :: End Users/Desktop',
         'Topic :: Multimedia',
         'License :: OSI Approved :: MIT License',
+        'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 3'
     ],
     keywords='subtitles syncrhonization srt ffmpeg',
@@ -48,10 +45,10 @@ setup(
         ]
     },
 
-    install_requires=requirements,
+    install_requires=['numpy', 'pysoundfile'],
 
     extras_require={
         # dev requirements are needed for training the model
-        'dev': ['pandas']
+        'dev': ['pandas', 'sklearn']
     }
 )

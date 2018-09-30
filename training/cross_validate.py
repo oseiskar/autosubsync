@@ -1,3 +1,5 @@
+import os
+import tempfile
 import numpy as np
 import pandas as pd
 
@@ -46,7 +48,6 @@ def test_correct_sync(result_meta, bias=0):
     print('shift RMSE:', np.sqrt(np.mean(sync_results.shift_error**2)))
 
     return sync_results
-
 
 def test_quality_of_fit_mismatch(result_meta, bias=0):
 
@@ -97,6 +98,13 @@ if __name__ == '__main__':
         # save some memory
         del train_x
         del train_meta
+
+        # test serialization
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_file = os.path.join(tmp_dir, 'model.bin')
+            print('testing serialization in temp file', tmp_file)
+            model.save(trained_model, tmp_file)
+            trained_model = model.load(tmp_file)
 
         print('Validating...')
         predicted_score = model.predict(trained_model, test_x, test_meta.file_number)

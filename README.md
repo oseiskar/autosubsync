@@ -14,7 +14,7 @@ A correction for both shift and playing speed can be found automatically...
 
 ## Installation
 
-Requires [ffmpeg](https://www.ffmpeg.org/) and Python 3
+Requires [ffmpeg](https://www.ffmpeg.org/)
 ```
 sudo apt-get install ffmpeg
 sudo pip install autosubsync

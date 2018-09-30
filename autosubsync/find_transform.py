@@ -1,6 +1,6 @@
 import numpy as np
 
-from .features import frame_secs, maybe_parallel_starmap
+from .features import frame_secs, maybe_parallel_map
 from . import quality_of_fit
 
 def score_function(labels, probs):
@@ -41,6 +41,9 @@ def best_shift(*args, **kwargs):
     best_idx = np.argmax(scores)
     return [shifts[best_idx]*frame_secs, scores[best_idx], quality]
 
+def _best_shift_star(args):
+    return best_shift(*args)
+
 def get_skew_pairs(frame_rates, fixed_skew=None):
     if fixed_skew is not None:
         return [fixed_skew], [str(fixed_skew)]
@@ -59,8 +62,8 @@ def find_transform_parameters(y_subs, y_probs, max_shift_secs=20.0, frame_rates=
         print('testing with skews: ' + ', '.join(skew_labels))
         print('bias', bias)
 
-    shift_score_quality = np.array(maybe_parallel_starmap( \
-        best_shift, \
+    shift_score_quality = np.array(maybe_parallel_map( \
+        _best_shift_star, \
         [(y_subs, y_probs, max_shift_secs, skew) for skew in skews], \
         parallelism))
 

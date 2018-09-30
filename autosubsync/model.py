@@ -1,6 +1,7 @@
 import numpy as np
-import pickle
+import json
 from . import features
+from .trained_logistic_regression import TrainedLogisticRegression
 
 def transform(data_x):
     return np.hstack([
@@ -57,6 +58,8 @@ def train(training_x, training_y, training_meta, verbose=False):
     if verbose:
         print(speech_detection)
 
+    speech_detection = TrainedLogisticRegression.from_sklearn(speech_detection)
+
     # save some memory
     del training_x_normalized
     del training_weights
@@ -73,15 +76,22 @@ def predict(model, test_x, file_labels=None):
     return speech_detection.predict_proba(test_x)[:,1]
 
 def serialize(model):
-    return pickle.dumps(model)
+    return json.dumps({
+        'logistic_regression': model[0].to_dict(),
+        'bias': model[1]
+    })
 
 def deserialize(data):
-    return pickle.loads(data)
+    d = json.loads(data)
+    return [
+        TrainedLogisticRegression.from_dict(d['logistic_regression']),
+        d['bias']
+    ]
 
 def load(model_file):
-    with open(model_file, 'rb') as f:
+    with open(model_file, 'r') as f:
         return deserialize(f.read())
 
 def save(trained_model, target_file):
-    with open(target_file, 'wb') as f:
+    with open(target_file, 'w') as f:
         f.write(serialize(trained_model))

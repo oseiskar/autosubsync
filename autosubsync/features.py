@@ -64,18 +64,24 @@ def split_to_chunks(n, chunk_size):
         yield(slice(i_begin, i_end))
         i_begin = i_end
 
-def maybe_parallel_starmap(f, data, parallelism=1):
+def maybe_parallel_map(f, data, parallelism=1):
     if parallelism > 1:
         from multiprocessing import Pool
-        with Pool(parallelism) as p:
-            return p.starmap(f, data)
+        try:
+            pool = Pool(parallelism)
+            return pool.map(f, data)
+        finally:
+            pool.close()
     else:
-        return [f(*c) for c in data]
+        return [f(c) for c in data]
 
 def compute_chunk_features(sound_data_chunk, frame_size, frame_secs):
     training_x = split_to_frames(sound_data_chunk, frame_size)
     spectra = compute_spectra(apply_windowing(training_x), 3*frame_secs)
     return compute_banks(spectra, n_banks=50)
+
+def _compute_chunk_features_star(args):
+    return compute_chunk_features(*args)
 
 def compute(sound_data, subvec, sample_rate, parallelism=3):
     frame_size = int(frame_secs*sample_rate)
@@ -89,7 +95,7 @@ def compute(sound_data, subvec, sample_rate, parallelism=3):
         return np.round(np.mean(split_to_frames(subvec[chunk], frame_size), axis=1))
 
     data_chunks = [(sound_data[c], frame_size, frame_secs) for c in chunks]
-    all_x = np.vstack(maybe_parallel_starmap(compute_chunk_features, data_chunks, parallelism))
+    all_x = np.vstack(maybe_parallel_map(_compute_chunk_features_star, data_chunks, parallelism))
     all_y = np.hstack([compute_chunk_labels(c) for c in chunks])
 
     return all_x, all_y
