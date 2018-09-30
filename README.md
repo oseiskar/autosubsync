@@ -1,5 +1,7 @@
 # Automatic subtitle synchronization tool
 
+[![PyPI](https://img.shields.io/pypi/v/autosubsync.svg)](https://pypi.python.org/pypi/autosubsync)
+
 Did you know that hundreds of movies, especially from the 1950s and '60s,
 are now in public domain and available online? Great! Let's download
 _Plan 9 from Outer Space_. As a non-native English speaker, I prefer watching
@@ -8,7 +10,7 @@ there is a problem: the subtitles are not in sync with the movie.
 
 But fear not. This tool can resynchronize the subtitles without any human input.
 A correction for both shift and playing speed can be found automatically...
-[using AI & machine learning](#References)
+[using AI & machine learning](#references)
 
 ## Installation
 
@@ -80,3 +82,9 @@ using correctly synchronized subtitles as training data for speech detection.
 Instead of starting from the code linked in that blog post I decided to implement my
 own version from scratch, since this might have been a good application for trying out
 RNNs, which turned out to be unnecessary, but this was a nice project nevertheless.
+
+### Other similar projects
+
+ * https://github.com/tympanix/subsync Apparently based on the blog post above, looks good
+ * https://github.com/Koenkk/PyAMC/blob/master/autosubsync.py
+ * https://github.com/pulasthi7/AutoSubSync-old & https://github.com/pulasthi7/AutoSubSync (looks inactive)
