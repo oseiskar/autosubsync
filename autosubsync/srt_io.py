@@ -7,7 +7,10 @@ def read_file(input_file):
     """
     Read an SRT file to (seq, begin, end, text) tuples, where
     begin and end are float timestamps in seconds. Text is
-    actually binary since we don't really care about the encoding here.
+    actually binary since we don't really care about the encoding here
+
+    :param input_file: input file name (string)
+    :return: generator of tuples ``(seq, begin, end, text)``
     """
     def parse_time(timestamp):
         hours, minutes, secs = timestamp.split(b':')
@@ -46,11 +49,22 @@ class writer:
     Writer for SRT files. Outputs windows line endings and no UTF BOMs
     """
     def __init__(self, file):
-        "Create writer for an open file, which should be in binary mode"
+        """
+        Create writer for an open file, which should be in binary mode
+
+        :param file: file object opened in binary mode
+        """
         self.seq = 1
         self.file = file
 
     def write(self, begin, end, text):
+        """
+        Write and SRT entry
+
+        :param begin: begin timestamp (float seconds)
+        :param end: end timestamp (float seconds)
+        :param text: text (binary string)
+        """
         self._write_line_ascii(self.seq)
         self._write_line_ascii(self._format_time(begin) + ' --> ' + self._format_time(end))
         self._write_line_binary(text) # can be almost any encoding
@@ -67,6 +81,7 @@ class writer:
         self.file.write(data + b'\r\n')
 
     def _format_time(self, t_secs):
+        "Convert float seconds to SRT timestamp format"
         msecs = round(t_secs*1000)
         secs = int(msecs / 1000) % 60
         mins = int(msecs / (60*1000)) % 60

@@ -13,14 +13,14 @@ def parse_skew(skew):
     else:
         return float(skew)
 
-def main(trained_model, sound_data, subvec, sample_rate, n_processes=3, fixed_skew=None, **kwargs):
+def main(trained_model, sound_data, subvec, sample_rate, parallelism=3, fixed_skew=None, **kwargs):
     if kwargs.get('verbose', False):
         print(('computing features for %d audio samples ' + \
-            'using %d parallel process(es)') % (len(sound_data), n_processes))
+            'using %d parallel process(es)') % (len(sound_data), parallelism))
 
     fixed_skew = parse_skew(fixed_skew)
 
-    features_x, shifted_y = features.compute(sound_data, subvec, sample_rate, n_processes=n_processes)
+    features_x, shifted_y = features.compute(sound_data, subvec, sample_rate, parallelism=parallelism)
     y_scores = model.predict(trained_model, features_x)
     bias = trained_model[1]
-    return find_transform.find_transform(shifted_y, y_scores, n_processes=n_processes, fixed_skew=fixed_skew, bias=bias, **kwargs)
+    return find_transform.find_transform(shifted_y, y_scores, parallelism=parallelism, fixed_skew=fixed_skew, bias=bias, **kwargs)

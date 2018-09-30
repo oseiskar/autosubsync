@@ -81,10 +81,8 @@ def import_target_files(video_file, subtitle_file, **kwargs):
 
         try: os.rmdir(tmp_dir)
         except: pass
-        print('Cleared temporary data')
 
     try:
-        print('Extracting audio using ffmpeg and reading subtitles...')
         extract_sound(video_file, sound_file)
         return import_item(sound_file, subtitle_file, **kwargs)
 

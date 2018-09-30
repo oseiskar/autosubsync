@@ -52,7 +52,7 @@ def get_skew_pairs(frame_rates, fixed_skew=None):
     uniq_idx = np.unique(skews, return_index=True)[1]
     return skews[uniq_idx], ['%g/%g' % (skew_pairs[i,0], skew_pairs[i,1]) for i in uniq_idx]
 
-def find_transform_parameters(y_subs, y_probs, max_shift_secs=20.0, frame_rates=[23.976, 24, 25], bias=0, fixed_skew=None, verbose=False, n_processes=3):
+def find_transform_parameters(y_subs, y_probs, max_shift_secs=20.0, frame_rates=[23.976, 24, 25], bias=0, fixed_skew=None, verbose=False, parallelism=3):
     skews, skew_labels = get_skew_pairs(frame_rates, fixed_skew=fixed_skew)
     if verbose:
         print('max shift %gs, test increments %gs' % (max_shift_secs, frame_secs))
@@ -62,7 +62,7 @@ def find_transform_parameters(y_subs, y_probs, max_shift_secs=20.0, frame_rates=
     shift_score_quality = np.array(maybe_parallel_starmap( \
         best_shift, \
         [(y_subs, y_probs, max_shift_secs, skew) for skew in skews], \
-        n_processes))
+        parallelism))
 
     if verbose:
         import pandas as pd
