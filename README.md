@@ -7,7 +7,28 @@ movies with subtitles, which can also be found online for free. However, sometim
 there is a problem: the subtitles are not in sync with the movie.
 
 But fear not. This tool can resynchronize the subtitles without any human input.
-A correction for both shift and playing speed can be found automatically.
+A correction for both shift and playing speed can be found automatically...
+[using AI & machine learning](#References)
+
+## Installation
+
+Requires [ffmpeg](https://www.ffmpeg.org/) and Python 3
+```
+sudo apt-get install ffmpeg
+sudo pip install autosubsync
+```
+
+## Usage
+
+```
+autosubsync [input movie] [input subtitles] [output subs]
+
+# for example
+autosubsync plan-9-from-outer-space.avi \
+  plan-9-out-of-sync-subs.srt \
+  plan-9-subtitles-synced.srt
+```
+See `autosubsync --help` for more details.
 
 ## Features
 
@@ -15,11 +36,13 @@ A correction for both shift and playing speed can be found automatically.
  * Wide video format support through [ffmpeg](https://www.ffmpeg.org/)
  * Supports all reasonably encoded SRT files
  * Quality-of-fit metric for checking sync success
+ * Python API
 
-## Requirements
+         import autosubsync
+         autosubsync.syncrhonize("movie.avi", "subs.srt", "synced.srt")
 
- * Python 3
- * ffmpeg
+         # see help(autosubsync.syncrhonize) for more details
+
 
 ## Development
 
