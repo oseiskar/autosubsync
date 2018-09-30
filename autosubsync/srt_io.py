@@ -3,14 +3,17 @@ Module for reading and writing the SRT format. Attempts to deal with
 different encodings in a pass-through fashion: read and write as binary.
 """
 
-def read_file(input_file):
+def read_file_tuples(input_file):
     """
     Read an SRT file to (seq, begin, end, text) tuples, where
     begin and end are float timestamps in seconds. Text is
     actually binary since we don't really care about the encoding here
 
-    :param input_file: input file name (string)
-    :return: generator of tuples ``(seq, begin, end, text)``
+    Args:
+        input_file (string): input file name
+
+    Yields:
+        generator of tuples (seq, begin, end, text)
     """
     def parse_time(timestamp):
         hours, minutes, secs = timestamp.split(b':')
@@ -44,6 +47,36 @@ def read_file(input_file):
         text = b'\n'.join(block[2:])
         yield(seq, parse_time(begin), parse_time(end), text)
 
+class SrtEntry:
+    """
+    SRT entry, the subtitle text visible as a whole for a certain time interval
+
+    Attributes:
+        seq (int): integer sequence of this text in the SRT file
+        begin (float): begin timestamp in seconds
+        end (float): end timestamp in seconds
+        text (binary string): juman-readable text to be shown as a subtitle
+    """
+    pass
+
+def read_file(input_file):
+    """
+    Read an SRT file to SrtEntry objects,
+
+    Args:
+        input_file (string): input file name
+
+    Yields:
+        generator of SrtEntry objects
+    """
+    for seq, begin, end, text in read_file_tuples(input_file):
+        entry = SrtEntry()
+        entry.seq = seq
+        entry.begin = begin
+        entry.end = end
+        entry.text = text
+        yield(entry)
+
 class writer:
     """
     Writer for SRT files. Outputs windows line endings and no UTF BOMs
@@ -52,24 +85,39 @@ class writer:
         """
         Create writer for an open file, which should be in binary mode
 
-        :param file: file object opened in binary mode
+        Args:
+            file: file object opened in binary mode
         """
         self.seq = 1
         self.file = file
 
     def write(self, begin, end, text):
         """
-        Write and SRT entry
+        Write an SRT entry
 
-        :param begin: begin timestamp (float seconds)
-        :param end: end timestamp (float seconds)
-        :param text: text (binary string)
+        Args:
+            begin (float): begin timestamp
+            end (float): end timestamp
+            text (binary string): text
         """
         self._write_line_ascii(self.seq)
         self._write_line_ascii(self._format_time(begin) + ' --> ' + self._format_time(end))
         self._write_line_binary(text) # can be almost any encoding
         self._write_line_ascii('') # empty line
         self.seq += 1
+
+    def write_entry(self, srt_entry):
+        """
+        Write an SRT entry.
+
+        Args:
+            srt_entry (SrtEntry): an object with begin, end and text attributes
+
+        Note:
+            the seq attribute, if any is ignored and automatically set to
+            a running integer
+        """
+        self.write(srt_entry.begin, srt_entry.end, srt_entry.text)
 
     def _write_line_ascii(self, thing):
         "Write something as text (must only contain ASCII characters)"

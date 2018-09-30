@@ -11,12 +11,15 @@ def synchronize(video_file, subtitle_file, output_file, verbose=False, model_fil
     tool "ffmpeg" must be available. Uses temporary files which are deleted
     automatically.
 
-    :param video_file: Input video file name (string)
-    :param subtitle_file: Input SRT subtitle file name (string)
-    :param output_file: Output (syncrhonized) SRT subtitle file name (string)
-    :param verbose: If True, print progress information to stdout
-    :param kwargs: Search parameters, see ``autosubsync --help``
-    :return: True on success (quality of fit test passed), False if failed.
+    Args:
+        video_file (string): Input video file name
+        subtitle_file (string): Input SRT subtitle file name
+        output_file (string): Output (syncrhonized) SRT subtitle file name
+        verbose (boolean): If True, print progress information to stdout
+        kwargs (dict): Search parameters, see ``autosubsync --help``
+
+    Returns:
+        True on success (quality of fit test passed), False if failed.
     """
 
     # these are here to enable running as python3 autosubsync/main.py

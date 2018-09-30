@@ -65,8 +65,9 @@ def find_transform_parameters(y_subs, y_probs, max_shift_secs=20.0, frame_rates=
         parallelism))
 
     if verbose:
-        import pandas as pd
-        print(pd.DataFrame(shift_score_quality, index=skew_labels).assign(skew=skews))
+        print('shift\tscore\tquality\tskew')
+        for i in range(len(shift_score_quality)):
+            print('\t'.join(["%.3g" % s for s in shift_score_quality[i]]) + '\t' + skew_labels[i])
 
     best_idx = np.argmax(shift_score_quality[:,1])
 

@@ -48,5 +48,10 @@ setup(
         ]
     },
 
-    install_requires=requirements
+    install_requires=requirements,
+
+    extras_require={
+        # dev requirements are needed for training the model
+        'dev': ['pandas']
+    }
 )

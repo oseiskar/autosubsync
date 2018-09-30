@@ -3,7 +3,6 @@ import sys
 import tempfile
 import subprocess
 import numpy as np
-import pandas as pd
 from . import srt_io
 
 def import_sound(sound_path):
@@ -27,23 +26,16 @@ def import_sound(sound_path):
 def build_sub_vec(subs, sample_rate, n, sub_filter=None):
     subvec = np.zeros(n, np.bool)
     to_index = lambda x: int(sample_rate*x)
-    for _, line in subs.iterrows():
-        if sub_filter is not None and not sub_filter(line['text']): continue
-        begin = line['begin']
-        end = line['end']
-        subvec[to_index(begin):to_index(end)] = 1
+    for line in subs:
+        if sub_filter is not None and not sub_filter(line.text): continue
+        subvec[to_index(line.begin):to_index(line.end)] = 1
     return subvec
-
-def read_srt_to_data_frame(fn):
-    rows = [list(x) for x in srt_io.read_file(fn)]
-    df = pd.DataFrame(rows, columns=['seq', 'begin', 'end', 'text'])
-    return df.set_index('seq')
 
 def import_subs(srt_filename, sample_rate, n, **kwargs):
     audio_length = n / float(sample_rate)
-    subs = read_srt_to_data_frame(srt_filename)
-    if subs.shape[1] > 0:
-        subs_length = subs.end.max()
+    subs = list(srt_io.read_file(srt_filename))
+    if len(subs) > 0:
+        subs_length = np.max([s.end for s in subs])
         rel_err = abs(subs_length - audio_length) / max(subs_length, audio_length)
         if rel_err > 0.25: # warning threshold
             sys.stderr.write(" *** WARNING: subtitle and audio lengths " + \
@@ -92,5 +84,5 @@ def import_target_files(video_file, subtitle_file, **kwargs):
 def transform_srt(in_srt, out_srt, transform_func):
     with open(out_srt, 'wb') as out_file:
         out_srt = srt_io.writer(out_file)
-        for _, begin, end, text in srt_io.read_file(in_srt):
-            out_srt.write(transform_func(begin), transform_func(end), text)
+        for sub in srt_io.read_file(in_srt):
+            out_srt.write(transform_func(sub.begin), transform_func(sub.end), sub.text)
