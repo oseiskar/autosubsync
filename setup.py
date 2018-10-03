@@ -9,7 +9,7 @@ package_name = 'autosubsync'
 
 setup(
     name=package_name,
-    version='0.1.2',
+    version='0.1.3',
     description='Automatically synchronize subtitles with audio',
     long_description=long_description,
     url='https://github.com/oseiskar/' + package_name,
