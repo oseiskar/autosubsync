@@ -11,7 +11,7 @@ def import_sound(sound_path):
     target_sample_rate = 20000
     warning_threshold = 8000
 
-    sound_data, sample_rate = soundfile.read(sound_path)
+    sound_data, sample_rate = soundfile.read(sound_path, dtype='float32')
 
     ds_factor = max(int(np.floor(sample_rate / target_sample_rate)), 1)
     sound_data = sound_data[::ds_factor]
