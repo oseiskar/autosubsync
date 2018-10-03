@@ -36,7 +36,8 @@ See `autosubsync --help` for more details.
 
  * Automatic speed and shift correction
  * Wide video format support through [ffmpeg](https://www.ffmpeg.org/)
- * Supports all reasonably encoded SRT files
+ * Supports all reasonably encoded SRT files in any language
+ * Should work with any language in the audio (only tested with a few though)
  * Quality-of-fit metric for checking sync success
  * Python API
 
@@ -45,6 +46,15 @@ See `autosubsync --help` for more details.
 
          # see help(autosubsync.syncrhonize) for more details
 
+## Performance
+
+Based on somewhat limited testing, the typical shift error in auto-synchronization
+seems to be around 0.15 seconds (cross-validation RMSE) and generally below 0.5
+seconds. In other words, it seems to work well enough in most cases but could be
+better. [Speed correction](#speed-correction) errors did not occur.
+
+Auto-syncing a full-length movie currently takes about 3 minutes and utilizes
+around 1.5 GB of RAM.
 
 ## Development
 
@@ -70,6 +80,28 @@ Assumes trained model is available as `trained-model.bin`
  * `pip install -e .`
  * `pip install wheel`
  * `python setup.py bdist_wheel`
+
+## Methods
+
+### Speed correction
+
+Speed/skew detection is based on the assumption that an error in playing speed
+is not an arbitrary number but caused by frame rate mismatch, which constraints
+the possible playing speed multiplier to be ratio of two common frame rates
+sufficiently close to one. In particular, it must be one of the following values
+
+ * 24/23.976 = 30/29.97 = 60/59.94 = 1001/1000
+ * 25/24
+ * 25/23.976
+
+or the reciprocial (1/x).
+
+The reasoning behind this is that if the frame rate of (digital) video footage
+needs to be changed and the target and source frame rates are close enough,
+the conversion is often done by skipping any resampling and just changing the
+nominal frame rate. This effectively changes the playing speed of the video
+and the pitch of the audio by a small factor which is the ratio
+of these frame rates.
 
 ## References
 
