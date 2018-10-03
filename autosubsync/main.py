@@ -51,12 +51,12 @@ def synchronize(video_file, subtitle_file, output_file, verbose=False, \
     trained_model = model.load(model_file)
 
     if verbose: print('Extracting audio using ffmpeg and reading subtitles...')
-    sound_data, subvec, sample_rate = preprocessing.import_target_files(video_file, subtitle_file)
+    sound_data, subvec = preprocessing.import_target_files(video_file, subtitle_file)
 
     if verbose: print(('computing features for %d audio samples ' + \
-        'using %d parallel process(es)') % (len(sound_data), parallelism))
+        'using %d parallel process(es)') % (len(subvec), parallelism))
 
-    features_x, shifted_y = features.compute(sound_data, subvec, sample_rate, parallelism=parallelism)
+    features_x, shifted_y = features.compute(sound_data, subvec, parallelism=parallelism)
 
     if verbose: print('extracted features of size %s, performing speech detection' % \
         str(features_x.shape))

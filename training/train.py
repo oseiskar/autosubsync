@@ -17,8 +17,8 @@ def read_training_data(index_file):
     with open(index_file) as index:
         for item in csv.DictReader(index):
             file_number += 1
-            sound_data, sub_vec, sample_rate = preprocessing.import_item(locate(item['sound']), locate(item['subtitles']))
-            yield(sound_data, sub_vec, sample_rate, item['language'], file_number)
+            sound_data, sub_vec = preprocessing.import_item(locate(item['sound']), locate(item['subtitles']))
+            yield(sound_data, sub_vec, item['language'], file_number)
 
 def compute_feature_table(index_file):
     print('computing features')
@@ -26,9 +26,9 @@ def compute_feature_table(index_file):
     all_y = []
     all_numbers = []
     all_languages = []
-    for sound_data, subvec, sample_rate, language, file_number in read_training_data(index_file):
+    for sound_data, subvec, language, file_number in read_training_data(index_file):
         print('file %d' % file_number)
-        training_x, training_y = features.compute(sound_data, subvec, sample_rate)
+        training_x, training_y = features.compute(sound_data, subvec)
         all_x.append(training_x)
         all_y.extend(training_y)
         all_numbers.extend([file_number]*len(training_y))

@@ -11,17 +11,24 @@ def import_sound(sound_path):
     target_sample_rate = 20000
     warning_threshold = 8000
 
-    sound_data, sample_rate = soundfile.read(sound_path, dtype='float32')
+    # minimize memory usage by reading audio as 16-bit integers instead of
+    # float or double. This should be the maximum precision of the samples
+    # anyway
+    samples, sample_rate = soundfile.read(sound_path, dtype='int16')
+    data_range = 2**15
+
+    # even 8-bit audio would work here, but already affects performance
+    # samples, data_range = (samples / 256).astype(np.int8), 128
 
     ds_factor = max(int(np.floor(sample_rate / target_sample_rate)), 1)
-    sound_data = sound_data[::ds_factor]
+    samples = samples[::ds_factor]
     sample_rate = sample_rate / ds_factor
 
     if sample_rate < warning_threshold:
         # probably never happens but checking anyway
         sys.stderr.write('warning: low sound sample rate %d Hz\n' % sample_rate)
 
-    return sound_data, sample_rate
+    return samples, sample_rate, data_range
 
 def build_sub_vec(subs, sample_rate, n, sub_filter=None):
     subvec = np.zeros(n, np.bool)
@@ -46,10 +53,11 @@ def import_subs(srt_filename, sample_rate, n, **kwargs):
     return build_sub_vec(subs, sample_rate, n, **kwargs)
 
 def import_item(sound_file, subtitle_file, **kwargs):
-    sound_data, sample_rate = import_sound(sound_file)
-    n = len(sound_data)
+    sound_data = import_sound(sound_file)
+    samples, sample_rate, data_range = sound_data
+    n = len(samples)
     sub_vec = import_subs(subtitle_file, sample_rate, n, **kwargs)
-    return sound_data, sub_vec, sample_rate
+    return sound_data, sub_vec
 
 def extract_sound(input_video_file, output_sound_file):
     convert_cmd = [

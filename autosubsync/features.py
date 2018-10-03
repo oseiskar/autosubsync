@@ -45,7 +45,7 @@ def compute_spectra(windowed, window_length_secs):
     audible = (frequency > 20) & (frequency < 20000)
 
     spectrum = spectrum[:, audible]
-    return spectrum
+    return spectrum.astype(np.float32)
 
 def compute_banks(spectra, n_banks):
     bank_size = int(spectra.shape[1] / n_banks)
@@ -75,29 +75,29 @@ def maybe_parallel_map(f, data, parallelism=1):
     else:
         return [f(c) for c in data]
 
-def compute_chunk_features(sound_data_chunk, frame_size, frame_secs):
+def compute_chunk_features(sound_data_chunk, data_range, frame_size, frame_secs):
     training_x = split_to_frames(sound_data_chunk, frame_size)
-    spectra = compute_spectra(apply_windowing(training_x), 3*frame_secs)
+    spectra = compute_spectra(apply_windowing(training_x)/float(data_range), 3*frame_secs)
     return compute_banks(spectra, n_banks=50)
 
 def _compute_chunk_features_star(args):
     return compute_chunk_features(*args)
 
-def compute(sound_data, subvec, sample_rate, parallelism=3):
+def compute(sound_data, subvec, parallelism=3):
+    samples, sample_rate, data_range = sound_data
     frame_size = int(frame_secs*sample_rate)
 
     # compute features in chunks
     chunk_size_secs = 120
     chunk_size = int(chunk_size_secs / frame_secs)
-    chunks = list(split_to_chunks(len(sound_data), chunk_size))
+    chunks = list(split_to_chunks(len(samples), chunk_size))
 
     def compute_chunk_labels(chunk):
-        return np.round(np.mean(split_to_frames(subvec[chunk], frame_size), axis=1))
+        return np.round(np.mean(split_to_frames(subvec[chunk], frame_size), axis=1)).astype(np.float32)
 
-    data_chunks = [(sound_data[c], frame_size, frame_secs) for c in chunks]
+    data_chunks = [(samples[c], data_range, frame_size, frame_secs) for c in chunks]
     all_x = np.vstack(maybe_parallel_map(_compute_chunk_features_star, data_chunks, parallelism))
     all_y = np.hstack([compute_chunk_labels(c) for c in chunks])
-
     return all_x, all_y
 
 def normalize_by_file(data_x, normalize_func, file_labels=None):
