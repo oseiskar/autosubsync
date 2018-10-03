@@ -1,10 +1,21 @@
 #!/usr/bin/python3
 import argparse
 import numpy as np
+import gc
 import os
 import sys
 
-def synchronize(video_file, subtitle_file, output_file, verbose=False, model_file=None, **kwargs):
+def parse_skew(skew):
+    "helper function, parse maybe fractional notation like 24/24 to float"
+    if skew is None: return None
+    if '/' in skew:
+        a, b = [float(x) for x in skew.split('/')]
+        return a / b
+    else:
+        return float(skew)
+
+def synchronize(video_file, subtitle_file, output_file, verbose=False, \
+    parallelism=3, fixed_skew=None, model_file=None, **kwargs):
     """
     Automatically synchronize subtitles with audio in a video file.
     Uses FFMPEG to extract the audio from the video file and the command line
@@ -16,39 +27,61 @@ def synchronize(video_file, subtitle_file, output_file, verbose=False, model_fil
         subtitle_file (string): Input SRT subtitle file name
         output_file (string): Output (syncrhonized) SRT subtitle file name
         verbose (boolean): If True, print progress information to stdout
-        kwargs (dict): Search parameters, see ``autosubsync --help``
+        other arguments: Search parameters, see ``autosubsync --help``
 
     Returns:
         True on success (quality of fit test passed), False if failed.
     """
 
     # these are here to enable running as python3 autosubsync/main.py
+    from autosubsync import features
+    from autosubsync import find_transform
     from autosubsync import model
-    from autosubsync import predict
     from autosubsync import preprocessing
-    from autosubsync.quality_of_fit import threshold
+    from autosubsync import quality_of_fit
 
+    # argument parsing
     if model_file is None:
         from pkg_resources import resource_filename
         model_file = resource_filename(__name__, '../trained-model.bin')
 
+    fixed_skew = parse_skew(fixed_skew)
+
+    # load model
     trained_model = model.load(model_file)
 
     if verbose: print('Extracting audio using ffmpeg and reading subtitles...')
-    target_data = preprocessing.import_target_files(video_file, subtitle_file)
+    sound_data, subvec, sample_rate = preprocessing.import_target_files(video_file, subtitle_file)
 
-    if verbose: print('audio and subtitles extracted, fitting...')
-    transform_func, quality = predict.main(trained_model, *target_data, verbose=verbose, **kwargs)
+    if verbose: print(('computing features for %d audio samples ' + \
+        'using %d parallel process(es)') % (len(sound_data), parallelism))
 
-    success = quality > threshold
+    features_x, shifted_y = features.compute(sound_data, subvec, sample_rate, parallelism=parallelism)
+
+    if verbose: print('extracted features of size %s, performing speech detection' % \
+        str(features_x.shape))
+
+    y_scores = model.predict(trained_model, features_x)
+
+    # save some memory before parallelization fork so we look less bad
+    del features_x, sound_data, subvec
+    gc.collect()
+
     if verbose:
-        print('quality of fit: %g, threshold %g' % (quality, threshold))
+        print('computing best fit with %d frames' % len(y_scores))
+
+    transform_func, quality = find_transform.find_transform(shifted_y, y_scores, \
+        parallelism=parallelism, fixed_skew=fixed_skew, bias=trained_model[1], \
+        verbose=verbose, **kwargs)
+
+    success = quality > quality_of_fit.threshold
+    if verbose:
+        print('quality of fit: %g, threshold %g' % (quality, quality_of_fit.threshold))
         print('Fit complete. Performing resync, writing to ' + output_file)
 
     preprocessing.transform_srt(subtitle_file, output_file, transform_func)
 
-    if verbose and success:
-        print('success!')
+    if verbose and success: print('success!')
 
     return success
 
