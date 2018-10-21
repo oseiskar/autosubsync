@@ -1,3 +1,4 @@
+# encoding: utf-8
 import numpy as np
 import soundfile
 
@@ -24,13 +25,13 @@ def generate_intervals(file_length_seconds,
         paused = not paused
 
 def write_texts(file_name, intervals):
-    text = list('test sentence äö å.'*3)
+    text = list(u'test sentence äö å.'*3)
     with open(file_name, 'wb') as f:
         srt = srt_io.writer(f)
         for t0, t1 in intervals:
             np.random.shuffle(text)
             line = ''.join(text[:(np.random.randint(len(text))+5)]).strip()
-            srt.write(t0, t1, bytearray(line, 'utf-8'))
+            srt.write(t0, t1, line.encode('utf-8'))
 
 def generate_sound(intervals, file_length_seconds, skew, shift_seconds):
 
