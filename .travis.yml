@@ -3,20 +3,38 @@ matrix:
     include:
         - os: linux
           python: 2.7
+          dist: precise
+          name: Python 2 on Ubuntu 12
         - os: linux
           python: 3.6
+          dist: precise
+          name: Python 3 on Ubuntu 12
         - os: linux
           python: nightly
+          dist: precise
+          name: Latest Python on Ubuntu 12
+        - os: linux
+          python: 2.7
+          dist: trusty
+          # FFMPEG workarounds for Ubuntu 14
+          before_install:
+            - sudo add-apt-repository -y ppa:mc3man/trusty-media
+            - sudo apt-get update
+            - sudo apt-get install -y ffmpeg
+          name: Python 2 on Ubuntu 14
         - os: osx
           language: generic
           env: PYTHON=python
+          name: Python 2 on OSX
         - os: osx
           language: generic
           env: PYTHON=python3
+          name: Python 3 on OSX
 # Perform the manual steps on osx to install python3 and activate venv
 before_install:
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then pip install virtualenv; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then virtualenv venv -p $PYTHON; fi
+  - if [[ "$TRAVIS_OS_NAME" != "osx" ]]; then sudo apt-get install -y ffmpeg; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install ffmpeg; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then pip install virtualenv && virtualenv venv -p $PYTHON; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then source venv/bin/activate; fi
 script: "nosetests"
 notifications:
