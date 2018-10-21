@@ -15,7 +15,8 @@ def parse_skew(skew):
         return float(skew)
 
 def synchronize(video_file, subtitle_file, output_file, verbose=False, \
-    parallelism=3, fixed_skew=None, model_file=None, **kwargs):
+    parallelism=3, fixed_skew=None, model_file=None, return_parameters=False, \
+    **kwargs):
     """
     Automatically synchronize subtitles with audio in a video file.
     Uses FFMPEG to extract the audio from the video file and the command line
@@ -27,10 +28,21 @@ def synchronize(video_file, subtitle_file, output_file, verbose=False, \
         subtitle_file (string): Input SRT subtitle file name
         output_file (string): Output (syncrhonized) SRT subtitle file name
         verbose (boolean): If True, print progress information to stdout
+        return_parameters (boolean): If True, returns the syncrhonization
+            parameters instead of just the success flag
         other arguments: Search parameters, see ``autosubsync --help``
 
     Returns:
+        If return_parameters is False (default), returns
         True on success (quality of fit test passed), False if failed.
+
+        If return_parameters is True, returns a tuple of four values
+
+            success (boolean)   success flag as above
+            quality (float)     metric used to determine the value of "success"
+            skew (float)        best fit skew/speed (unitless)
+            shift (float)       best fit shift in seconds
+
     """
 
     # these are here to enable running as python3 autosubsync/main.py
@@ -70,7 +82,8 @@ def synchronize(video_file, subtitle_file, output_file, verbose=False, \
     if verbose:
         print('computing best fit with %d frames' % len(y_scores))
 
-    transform_func, quality = find_transform.find_transform(shifted_y, y_scores, \
+    skew, shift, quality = find_transform.find_transform_parameters(\
+        shifted_y, y_scores, \
         parallelism=parallelism, fixed_skew=fixed_skew, bias=trained_model[1], \
         verbose=verbose, **kwargs)
 
@@ -79,11 +92,15 @@ def synchronize(video_file, subtitle_file, output_file, verbose=False, \
         print('quality of fit: %g, threshold %g' % (quality, quality_of_fit.threshold))
         print('Fit complete. Performing resync, writing to ' + output_file)
 
+    transform_func = find_transform.parameters_to_transform(skew, shift)
     preprocessing.transform_srt(subtitle_file, output_file, transform_func)
 
     if verbose and success: print('success!')
 
-    return success
+    if return_parameters:
+        return success, quality, skew, shift
+    else:
+        return success
 
 def cli(packaged_model=False):
     p = argparse.ArgumentParser(description=synchronize.__doc__.split('\n\n')[0])

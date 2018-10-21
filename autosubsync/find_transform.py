@@ -84,6 +84,9 @@ def find_transform_parameters(y_subs, y_probs, max_shift_secs=20.0, frame_rates=
 
     return skew, shift, quality
 
+def parameters_to_transform(skew, shift):
+    return lambda x: x * skew + shift
+
 def find_transform(*args, **kwargs):
     skew, shift, quality = find_transform_parameters(*args, **kwargs)
-    return lambda x: x * skew + shift, quality
+    return parameters_to_transform(skew, shift), quality
