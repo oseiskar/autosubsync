@@ -3,3 +3,4 @@ pysoundfile
 pandas
 numpy
 sklearn
+nose
