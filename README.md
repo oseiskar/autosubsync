@@ -1,5 +1,6 @@
 # Automatic subtitle synchronization tool
 
+[![Build Status](https://travis-ci.org/oseiskar/autosubsync.svg?branch=master)](https://travis-ci.org/oseiskar/autosubsync)
 [![PyPI](https://img.shields.io/pypi/v/autosubsync.svg)](https://pypi.python.org/pypi/autosubsync)
 
 Did you know that hundreds of movies, especially from the 1950s and '60s,
@@ -14,11 +15,24 @@ A correction for both shift and playing speed can be found automatically...
 
 ## Installation
 
-Requires [ffmpeg](https://www.ffmpeg.org/)
+### macOS / OSX
+Prerequisites: Install [Homebrew](https://brew.sh/) and [pip](https://stackoverflow.com/questions/17271319/how-do-i-install-pip-on-macos-or-os-x). Then install FFmpeg and this package
+
+```
+brew install ffmpeg
+pip install autosubsync
+```
+
+### Linux (Debian & Ubuntu)
+
+Make sure you have Pip, e.g., `sudo apt-get install python-pip`.
+Then install [FFmpeg](https://www.ffmpeg.org/) and this package
 ```
 sudo apt-get install ffmpeg
 sudo pip install autosubsync
 ```
+
+Note: If you are running Ubuntu 14 (but not 12 and 16, which are fine), you'll need to [jump some more hoops to install FFmpeg](https://www.faqforge.com/linux/how-to-install-ffmpeg-on-ubuntu-14-04/).
 
 ## Usage
 
