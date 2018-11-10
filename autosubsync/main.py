@@ -26,7 +26,7 @@ def synchronize(video_file, subtitle_file, output_file, verbose=False, \
     Args:
         video_file (string): Input video file name
         subtitle_file (string): Input SRT subtitle file name
-        output_file (string): Output (syncrhonized) SRT subtitle file name
+        output_file (string): Output (synchronized) SRT subtitle file name
         verbose (boolean): If True, print progress information to stdout
         return_parameters (boolean): If True, returns the syncrhonization
             parameters instead of just the success flag
@@ -106,7 +106,7 @@ def cli(packaged_model=False):
     p = argparse.ArgumentParser(description=synchronize.__doc__.split('\n\n')[0])
     p.add_argument('video_file', help='Input video file')
     p.add_argument('subtitle_file', help='Input SRT subtitle file')
-    p.add_argument('output_file', help='Output (auto-syncrhonized) SRT subtitle file')
+    p.add_argument('output_file', help='Output (auto-synchronized) SRT subtitle file')
 
     # Make model file an argument only in the non-packaged version
     if not packaged_model:

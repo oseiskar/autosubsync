@@ -57,9 +57,9 @@ See `autosubsync --help` for more details.
  * Python API
 
          import autosubsync
-         autosubsync.syncrhonize("movie.avi", "subs.srt", "synced.srt")
+         autosubsync.synchronize("movie.avi", "subs.srt", "synced.srt")
 
-         # see help(autosubsync.syncrhonize) for more details
+         # see help(autosubsync.synchronize) for more details
 
 
 ## Development
