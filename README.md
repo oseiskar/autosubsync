@@ -135,9 +135,9 @@ The parameters minimizing the loss function are selected.
 
 ### Loss function
 
-The data produced by the speech detection phase is a vector of representing the
-speech probabilities in frames of duration _Δt_. The metric used for testing
-the match is expected linear loss:
+The data produced by the speech detection phase is a vector representing the
+speech probabilities in frames of duration _Δt_. The metric used for evaluating
+match quality is expected linear loss:
 
 &nbsp; &nbsp; loss(_f_) = Σ<sub>_i_</sub> _s_(_f<sub>i</sub>_)
 (1 - _p<sub>i</sub>_) + (1 - _s_(_f<sub>i</sub>_)) _p<sub>i</sub>_,
