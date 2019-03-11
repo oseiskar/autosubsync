@@ -31,6 +31,23 @@ def read_file_tuples(input_file):
                 data = data[len(bom):]
         return data
 
+    def get_line_blocks(data):
+        "combine invalid SRT line blocks with double line breaks"
+        last_block = []
+        blocks = []
+        for line_block in data.split(b'\n\n'):
+            line_block = line_block.strip()
+            if len(line_block) == 0: continue
+            block = line_block.split(b'\n')
+            try: int(block[0])
+            except:
+                last_block.extend(block)
+                continue
+
+            blocks.append(block)
+            last_block = block
+        return blocks
+
     with open(input_file, 'rb') as f:
         srt_data = f.read()
 
@@ -38,11 +55,7 @@ def read_file_tuples(input_file):
 
     error = None
     try:
-        for line_block in srt_data.split(b'\n\n'):
-            line_block = line_block.strip()
-            if len(line_block) == 0: continue
-            block = line_block.split(b'\n')
-
+        for block in get_line_blocks(srt_data):
             seq = int(block[0])
             times = block[1]
             begin, _, end = times.partition(b' --> ')
