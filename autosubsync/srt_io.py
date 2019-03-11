@@ -36,16 +36,23 @@ def read_file_tuples(input_file):
 
     srt_data = convert_line_ending(remove_boms(srt_data))
 
-    for line_block in srt_data.split(b'\n\n'):
-        line_block = line_block.strip()
-        if len(line_block) == 0: continue
-        block = line_block.split(b'\n')
+    error = None
+    try:
+        for line_block in srt_data.split(b'\n\n'):
+            line_block = line_block.strip()
+            if len(line_block) == 0: continue
+            block = line_block.split(b'\n')
 
-        seq = int(block[0])
-        times = block[1]
-        begin, _, end = times.partition(b' --> ')
-        text = b'\n'.join(block[2:])
-        yield(seq, parse_time(begin), parse_time(end), text)
+            seq = int(block[0])
+            times = block[1]
+            begin, _, end = times.partition(b' --> ')
+            text = b'\n'.join(block[2:])
+            yield(seq, parse_time(begin), parse_time(end), text)
+    except Exception as err:
+        error = RuntimeError("%s\n\n\tUnable to parse '%s'. Is it a valid SRT file?\n" \
+            % (err, input_file))
+
+    if error is not None: raise error
 
 class SrtEntry:
     """
@@ -76,6 +83,19 @@ def read_file(input_file):
         entry.end = end
         entry.text = text
         yield(entry)
+
+def check_file(input_file):
+    """
+    Check that an SRT file can be read
+
+    Args:
+        input_file (string): input file name
+
+    Throws:
+        RuntimeError if the file was not valid
+    """
+    list(read_file(input_file))
+
 
 class writer:
     """
