@@ -51,6 +51,10 @@ def synchronize(video_file, subtitle_file, output_file, verbose=False, \
     from autosubsync import model
     from autosubsync import preprocessing
     from autosubsync import quality_of_fit
+    from autosubsync import srt_io
+
+    # first check that the SRT file is valid before extracting any audio data
+    srt_io.check_file(subtitle_file)
 
     # argument parsing
     if model_file is None:
