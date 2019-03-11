@@ -102,9 +102,9 @@ _p(t)_, the detected speech. Here _s(t)_  is the (unsynchronized) subtitle
 indicator function whose value is 1 if any subtitles are visible at time _t_
 and 0 otherwise.
 
-### Speech detection
+### Speech detection (VAD)
 
-Speech detection is done by first computing a [spectrogram][2] of the audio,
+[Speech detection][4] is done by first computing a [spectrogram][2] of the audio,
 that is, a matrix of features, where each column corresponds to a frame of
 duration _Δt_ and each row a certain frequency band. Additional features are
 engineered by computing a rolling maximum of the spectrogram with a few
@@ -190,9 +190,12 @@ RNNs, which turned out to be unnecessary, but this was a nice project neverthele
   [1]: https://albertosabater.github.io/Automatic-Subtitle-Synchronization/
   [2]: https://en.wikipedia.org/wiki/Spectrogram
   [3]: https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html
+  [4]: https://en.wikipedia.org/wiki/Voice_activity_detection
 
 ### Other similar projects
 
  * https://github.com/tympanix/subsync Apparently based on the blog post above, looks good
+ * https://github.com/smacke/subsync Newer project, uses WebRTC VAD
+    (instead of DIY machine learning) for speech detection
  * https://github.com/Koenkk/PyAMC/blob/master/autosubsync.py
  * https://github.com/pulasthi7/AutoSubSync-old & https://github.com/pulasthi7/AutoSubSync (looks inactive)
