@@ -65,6 +65,8 @@ def extract_sound(input_video_file, output_sound_file):
         '-y', # overwrite if exists
         '-loglevel', 'error',
         '-i', input_video_file, # input
+        '-vn', # no video
+        '-sn', # no subtitles
         '-ac', '1', # convert to mono
         output_sound_file
     ]
