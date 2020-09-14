@@ -22,21 +22,9 @@ matrix:
             - sudo apt-get update
             - sudo apt-get install -y ffmpeg
           name: Python 2 on Ubuntu 14
-        - os: osx
-          language: generic
-          env: PYTHON=python
-          name: Python 2 on OSX
-        - os: osx
-          language: generic
-          env: PYTHON=python3
-          name: Python 3 on OSX
 # Perform the manual steps on osx to install python3 and activate venv
 before_install:
   - if [[ "$TRAVIS_OS_NAME" != "osx" ]]; then sudo apt-get install -y ffmpeg; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install ffmpeg; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then pip install virtualenv && virtualenv venv -p $PYTHON; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then source venv/bin/activate; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then pip install -r requirements.txt; fi
 script: "nosetests"
 notifications:
 email: false
