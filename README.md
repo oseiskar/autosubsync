@@ -54,13 +54,23 @@ See `autosubsync --help` for more details.
  * Supports all reasonably encoded SRT files in any language
  * Should work with any language in the audio (only tested with a few though)
  * Quality-of-fit metric for checking sync success
- * Python API
+ * Python API. Example (save as `batch_sync.py`):
 
-         import autosubsync
-         autosubsync.synchronize("movie.avi", "subs.srt", "synced.srt")
+    ```python
+    "Batch synchronize video files in a folder: python batch_sync.py /path/to/folder"
 
-         # see help(autosubsync.synchronize) for more details
+    import autosubsync
+    import glob, os, sys
 
+    if __name__ == '__main__':
+        for video_file in glob.glob(os.path.join(sys.argv[1], '*.mp4')):
+            base = video_file.rpartition('.')[0]
+            srt_file = base + '.srt'
+            synced_srt_file = base + '_synced.srt'
+
+            # see help(autosubsync.synchronize) for more details
+            autosubsync.synchronize(video_file, srt_file, synced_srt_file)
+    ```
 
 ## Development
 
