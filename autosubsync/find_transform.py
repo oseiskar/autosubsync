@@ -15,7 +15,7 @@ def score_function(labels, probs):
 def sub_score_transform(y_true, y_probs, func):
     y_true = np.array(list(y_true))
     n = len(y_true)
-    shifted_indices = np.round(func(np.arange(n)*frame_secs)/frame_secs).astype(np.int)
+    shifted_indices = np.round(func(np.arange(n)*frame_secs)/frame_secs).astype(int)
     y_shift = y_true*0
     valid_indices = (shifted_indices >= 0) & (shifted_indices < n)
     y_shift[shifted_indices[valid_indices]] = y_true[valid_indices]

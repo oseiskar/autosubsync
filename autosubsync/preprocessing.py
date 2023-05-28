@@ -31,7 +31,7 @@ def import_sound(sound_path):
     return samples, sample_rate, data_range
 
 def build_sub_vec(subs, sample_rate, n, sub_filter=None):
-    subvec = np.zeros(n, np.bool)
+    subvec = np.zeros(n, bool)
     to_index = lambda x: int(sample_rate*x)
     for line in subs:
         if sub_filter is not None and not sub_filter(line.text): continue
