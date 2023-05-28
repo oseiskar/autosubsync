@@ -9,3 +9,5 @@ venvs/
 *.egg-info/
 dist/
 build/
+batch_sync.py
+venv/
