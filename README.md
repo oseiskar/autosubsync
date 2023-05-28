@@ -1,6 +1,5 @@
 # Automatic subtitle synchronization tool
 
-[![Build Status](https://travis-ci.org/oseiskar/autosubsync.svg?branch=master)](https://travis-ci.org/oseiskar/autosubsync)
 [![PyPI](https://img.shields.io/pypi/v/autosubsync.svg)](https://pypi.python.org/pypi/autosubsync)
 
 Did you know that hundreds of movies, especially from the 1950s and '60s,
