@@ -28,11 +28,12 @@ pip install autosubsync
 Make sure you have Pip, e.g., `sudo apt-get install python-pip`.
 Then install [FFmpeg](https://www.ffmpeg.org/) and this package
 ```
-sudo apt-get install ffmpeg
+sudo apt install ffmpeg
+sudo apt install libsndfile1 # sometimes optional
 sudo pip install autosubsync
 ```
 
-Note: If you are running Ubuntu 14 (but not 12 and 16, which are fine), you'll need to [jump some more hoops to install FFmpeg](https://www.faqforge.com/linux/how-to-install-ffmpeg-on-ubuntu-14-04/).
+The `libsndfile1` is sometimes but not always needed due to https://github.com/bastibe/python-soundfile/issues/258.
 
 ## Usage
 

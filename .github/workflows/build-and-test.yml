@@ -20,6 +20,8 @@ jobs:
         id: setup-ffmpeg
       - name: Check FFMpeg
         run: ffmpeg -version
+      - name: Manually install sndfile
+        run: sudo apt install libsndfile1
       - name: Install
         run: pip install -e .[dev,test,docs]
       - name: Run tests
