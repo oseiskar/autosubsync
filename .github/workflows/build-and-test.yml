@@ -23,4 +23,4 @@ jobs:
       - name: Install
         run: pip install -e .[dev,test,docs]
       - name: Run tests
-        run: nosetests
+        run: python tests/unit_tests.py
