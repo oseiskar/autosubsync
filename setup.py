@@ -49,7 +49,7 @@ setup(
 
     extras_require={
         # dev requirements are needed for training the model
-        'dev': ['pandas', 'sklearn'],
+        'dev': ['pandas', 'scikit-learn'],
         'test': ['nose']
     }
 )
