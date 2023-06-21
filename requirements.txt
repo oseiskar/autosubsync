@@ -2,5 +2,5 @@
 pysoundfile
 pandas
 numpy
-sklearn
+scikit-learn
 nose
