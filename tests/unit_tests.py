@@ -2,7 +2,7 @@ import unittest, os, tempfile, json
 
 #from autosubsync import xyz
 from generate_test_data import generate, set_seed
-from autosubsync import synchronize
+from autosubsync import synchronize, preprocessing, srt_io
 
 def generate_dummy_model(filename):
     DUMMY_MODEL = {
@@ -56,13 +56,36 @@ class TestSync(unittest.TestCase):
 
         def clear():
             for f in [temp_sound, temp_subs, temp_out, temp_model]:
-                try: os.unlink(sound_file)
+                try: os.unlink(f)
                 except: pass
             try: os.rmdir(tmp_dir)
             except: pass
 
         try: run_test()
         finally: clear()
+
+    def test_transform_srt_in_place(self):
+        tmp_dir = tempfile.mkdtemp()
+        temp_subs = os.path.join(tmp_dir, 'subs.srt')
+        try:
+            with open(temp_subs, 'wb') as out_file:
+                writer = srt_io.writer(out_file)
+                writer.write(1.0, 2.5, b'First line\n')
+                writer.write(3.0, 4.5, b'Second line\n')
+
+            preprocessing.transform_srt(temp_subs, temp_subs, lambda t: t + 1.0)
+            subs = list(srt_io.read_file(temp_subs))
+
+            self.assertEqual(len(subs), 2)
+            self.assertAlmostEqual(subs[0].begin, 2.0)
+            self.assertAlmostEqual(subs[0].end, 3.5)
+            self.assertAlmostEqual(subs[1].begin, 4.0)
+            self.assertAlmostEqual(subs[1].end, 5.5)
+        finally:
+            try: os.unlink(temp_subs)
+            except: pass
+            try: os.rmdir(tmp_dir)
+            except: pass
 
 if __name__ == '__main__':
     unittest.main()

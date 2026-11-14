@@ -58,8 +58,12 @@ def synchronize(video_file, subtitle_file, output_file, verbose=False, \
 
     # argument parsing
     if model_file is None:
-        from pkg_resources import resource_filename
-        model_file = resource_filename(__name__, '../trained-model.bin')
+        try:
+            from importlib.resources import files
+            model_file = str(files('autosubsync').joinpath('../trained-model.bin').resolve())
+        except Exception:
+            from pkg_resources import resource_filename
+            model_file = resource_filename(__name__, '../trained-model.bin')
 
     fixed_skew = parse_skew(fixed_skew)
 

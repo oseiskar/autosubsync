@@ -92,7 +92,8 @@ def import_target_files(video_file, subtitle_file, **kwargs):
         clear()
 
 def transform_srt(in_srt, out_srt, transform_func):
+    subs = list(srt_io.read_file(in_srt))
     with open(out_srt, 'wb') as out_file:
-        out_srt = srt_io.writer(out_file)
-        for sub in srt_io.read_file(in_srt):
-            out_srt.write(transform_func(sub.begin), transform_func(sub.end), sub.text)
+        writer = srt_io.writer(out_file)
+        for sub in subs:
+            writer.write(transform_func(sub.begin), transform_func(sub.end), sub.text)
